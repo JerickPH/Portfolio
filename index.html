@@ -149,13 +149,30 @@
   .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px}
   .about-grid .lede{color:var(--ink);font-size:1.15rem}
   .about-grid .lede + .lede{margin-top:16px;color:var(--muted);font-size:1.05rem}
-  .timeline{list-style:none;margin:0;padding:0;position:relative}
-  .timeline::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--line)}
-  .timeline li{position:relative;padding:0 0 26px 34px}
-  .timeline li::before{content:"";position:absolute;left:0;top:6px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:2px solid var(--ink)}
-  .timeline li:last-child::before{background:var(--amber);border-color:var(--amber)}
-  .timeline b{display:block;font-family:var(--display);font-size:1.15rem}
-  .timeline span{color:var(--muted);font-size:.97rem}
+  .facts{margin:0;border-top:1.5px solid var(--ink)}
+  .facts div{display:grid;grid-template-columns:130px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .facts dt{font-weight:600}
+  .facts dd{margin:0;color:var(--muted)}
+
+  /* Experience */
+  .exp{border-top:1.5px solid var(--ink)}
+  .exp-item{display:grid;grid-template-columns:220px 1fr;gap:32px;padding:34px 0;border-bottom:1px solid var(--line)}
+  .exp-when{font-family:var(--display);font-weight:700;font-size:1.1rem}
+  .exp-when span{display:block;font:400 .92rem/1.5 var(--body);color:var(--muted);margin-top:6px}
+  .exp-org{font-size:1.55rem}
+  .roles{list-style:none;margin:20px 0 0;padding:0;position:relative}
+  .roles::before{content:"";position:absolute;left:7px;top:10px;bottom:24px;width:2px;background:var(--line)}
+  .roles:has(> .role:only-child)::before{display:none}
+  .role{position:relative;padding:0 0 24px 34px}
+  .role:last-child{padding-bottom:0}
+  .role::before{content:"";position:absolute;left:0;top:6px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:2px solid var(--ink)}
+  .role.now::before{background:var(--amber);border-color:var(--amber)}
+  .role-head{display:flex;justify-content:space-between;align-items:baseline;gap:4px 16px;flex-wrap:wrap}
+  .role-title{font-family:var(--display);font-weight:700;font-size:1.15rem;letter-spacing:-0.01em}
+  .role-dates{font-size:.92rem;color:var(--muted)}
+  .role ul{list-style:disc;margin:10px 0 0;padding-left:20px;max-width:72ch}
+  .role li{margin-bottom:6px}
+  .role li::marker{color:var(--amber)}
 
   /* Contact */
   .contact{padding:0 0 96px}
@@ -209,6 +226,8 @@
     .case .toggle{grid-row:1/span 2;grid-column:2}
     .case-body{grid-template-columns:1fr}
     .steps{grid-template-columns:1fr;gap:32px}
+    .exp-item{grid-template-columns:1fr;gap:10px;padding:28px 0}
+    .facts div{grid-template-columns:110px 1fr}
     .contact-card{padding:32px 22px}
   }
   @media (prefers-reduced-motion:reduce){
@@ -233,6 +252,7 @@
     <ul class="menu" id="menu">
       <li><a href="#services">Services</a></li>
       <li><a href="#work">Work</a></li>
+      <li><a href="#experience">Experience</a></li>
       <li><a href="#process">Process</a></li>
       <li><a href="#about">About</a></li>
       <li><a class="cta" href="#contact">Contact</a></li>
@@ -426,6 +446,89 @@
     </div>
   </section>
 
+  <!-- EXPERIENCE -->
+  <section id="experience" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Experience</h2>
+        <p class="lede">More than five years of remote work, from client support to running web projects and building automation.</p>
+      </div>
+      <div class="exp">
+
+        <div class="exp-item">
+          <p class="exp-when">2021 – Present<span>Remote, Malta-based web agency</span></p>
+          <div>
+            <h3 class="exp-org">Born Digital (Webee Ltd)</h3>
+            <ol class="roles">
+              <li class="role now">
+                <div class="role-head"><span class="role-title">Web Project Manager</span><span class="role-dates">Jul 2025 – Present</span></div>
+                <ul>
+                  <li>Manage delivery of WordPress and Laravel projects for European institutional clients, from requirements through UAT and go-live.</li>
+                  <li>Run Agile/Scrum delivery for a Laravel results-based management system, leading sprint planning and the backlog with the developer, QA and product owner.</li>
+                  <li>Manage delivery of websites built on Astro with Payload CMS, coordinating design, development and content setup through launch.</li>
+                  <li>Manage waterfall WordPress builds against fixed go-live dates, tracking scope and tasks in Jira.</li>
+                  <li>Own client communication on security fixes, email delivery issues and integration outages.</li>
+                </ul>
+              </li>
+              <li class="role">
+                <div class="role-head"><span class="role-title">Web Developer</span><span class="role-dates">Jul 2022 – Jun 2025</span></div>
+                <ul>
+                  <li>Built responsive WordPress websites from approved designs, including custom-coded homepages.</li>
+                  <li>Maintained WordPress core, themes and plugins to keep sites fast, secure and available.</li>
+                  <li>Built custom PHP and JavaScript features with senior developers, following WordPress coding standards.</li>
+                </ul>
+              </li>
+              <li class="role">
+                <div class="role-head"><span class="role-title">Web Support Specialist</span><span class="role-dates">Jul 2021 – Jun 2022</span></div>
+                <ul>
+                  <li>Resolved website support tickets via email and Slack.</li>
+                  <li>Assigned tasks to developers based on client requests and priorities, then checked the work before delivery.</li>
+                </ul>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="exp-item">
+          <p class="exp-when">2022 – Present<span>Clients in the US, Australia and Europe</span></p>
+          <div>
+            <h3 class="exp-org">Freelance</h3>
+            <ol class="roles">
+              <li class="role now">
+                <div class="role-head"><span class="role-title">AI Automation Specialist and Web Developer</span><span class="role-dates">Self-employed</span></div>
+                <ul>
+                  <li>Build lead-to-payment automations across GoHighLevel, n8n, Make, Zapier and the Claude API.</li>
+                  <li>Build AI phone agents on Vapi.ai and Twilio, connected to GoHighLevel, including SMS compliance setup.</li>
+                  <li>Manage GoHighLevel at agency level: campaigns, pipelines, funnels and lead nurturing across sub-accounts.</li>
+                  <li>Integrate Arive and ActiveCampaign with GoHighLevel so leads and contacts stay in sync across platforms.</li>
+                  <li>Integrate Xero with Shopify and GoHighLevel to automate invoicing.</li>
+                  <li>Deliver Figma-to-WordPress builds, including recruitment websites connected to JobAdder, and manage client websites on Wix.</li>
+                </ul>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="exp-item">
+          <p class="exp-when">2020 – 2021<span>Remote</span></p>
+          <div>
+            <h3 class="exp-org">Outsourced Doers</h3>
+            <ol class="roles">
+              <li class="role">
+                <div class="role-head"><span class="role-title">Virtual Assistant</span><span class="role-dates">Sep 2020 – Jul 2021</span></div>
+                <ul>
+                  <li>Supported clients with admin tasks, business operations and relationship management.</li>
+                  <li>Managed client social media accounts and maintained client websites.</li>
+                </ul>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- PROCESS -->
   <section id="process" style="padding-top:0">
     <div class="wrap">
@@ -457,12 +560,12 @@
           <p class="lede">I've worked remotely for more than five years with clients in the US, Australia and Europe. I started in customer support, which is why I build systems around what the person on the other end actually experiences.</p>
           <p class="lede">Today I split my time between managing web projects at an agency and running my own automation practice. Clients usually come to me when leads are slipping through the gaps between their tools.</p>
         </div>
-        <ol class="timeline" aria-label="Career path">
-          <li><b>BPO and customer support</b><span>Learned how customers really get stuck</span></li>
-          <li><b>Web development</b><span>WordPress builds, hosting and server work</span></li>
-          <li><b>Web project manager</b><span>Agency delivery for institutional clients</span></li>
-          <li><b>AI automation specialist</b><span>Voice agents and lead-to-payment systems</span></li>
-        </ol>
+        <dl class="facts" aria-label="Quick facts">
+          <div><dt>Based in</dt><dd>Davao City, Philippines (UTC+8)</dd></div>
+          <div><dt>Experience</dt><dd>5+ years, fully remote</dd></div>
+          <div><dt>Clients in</dt><dd>The US, Australia and Europe</dd></div>
+          <div><dt>Focus</dt><dd>Automation, AI voice agents, GoHighLevel and WordPress</dd></div>
+        </dl>
       </div>
     </div>
   </section>
