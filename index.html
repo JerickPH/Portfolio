@@ -65,7 +65,7 @@
   /* Hero */
   .hero{padding:56px 0 40px}
   .hero-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:48px;align-items:end}
-  .hero h1{font-size:clamp(2.6rem,6.2vw,5.1rem);font-weight:800;letter-spacing:-0.035em;max-width:14ch}
+  .hero h1{font-size:clamp(2.3rem,4.6vw,3.9rem);font-weight:800;letter-spacing:-0.03em;max-width:17ch}
   .hero .lede{margin-top:22px}
   .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
   .who{display:flex;align-items:center;gap:10px;margin-bottom:22px;color:var(--muted);font-weight:500}
@@ -74,26 +74,22 @@
   .portrait img{width:100%;height:100%;object-fit:cover}
   .portrait-cap{margin-top:12px;font-size:.92rem;color:var(--muted)}
 
-  /* Pipeline */
-  .pipeline{margin-top:56px;background:var(--ink);color:#fff;border-radius:24px;padding:28px 32px 30px}
-  .pipe-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:26px}
-  .pipe-head p{color:#B9C4CB;font-size:.98rem}
-  .pipe-head strong{color:#fff;font-weight:600}
-  .pipe-replay{background:none;border:1px solid #3A4A55;color:#DCE3E8;border-radius:999px;padding:6px 14px;font:500 .9rem var(--body);cursor:pointer}
-  .pipe-replay:hover{border-color:#fff;color:#fff}
-  .track{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-  .rail{position:absolute;left:10%;right:10%;top:15px;height:3px;background:#33434E;border-radius:3px}
-  .rail-fill{position:absolute;inset:0 auto 0 0;width:0;background:var(--amber);border-radius:3px;transition:width .9s cubic-bezier(.65,0,.35,1)}
-  .stop{position:relative;text-align:center;padding:0 4px}
-  .node{width:33px;height:33px;margin:0 auto 14px;border-radius:50%;background:var(--ink);border:3px solid #3A4A55;display:grid;place-items:center;transition:border-color .3s,background .3s,transform .3s}
-  .node svg{width:15px;height:15px;opacity:0;transition:opacity .3s}
-  .stop.done .node{border-color:var(--amber);background:var(--amber)}
-  .stop.done .node svg{opacity:1}
-  .stop.current .node{transform:scale(1.18)}
-  .stop b{display:block;font-family:var(--display);font-weight:700;font-size:1.05rem;color:#8796A0;transition:color .3s}
-  .stop span{display:block;font-size:.85rem;color:#6E7E89;margin-top:4px;transition:color .3s}
-  .stop.done b{color:#fff}
-  .stop.done span{color:#B9C4CB}
+  /* Ask my AI */
+  .askai{margin-top:56px;background:var(--ink);color:#fff;border-radius:24px;padding:32px;display:grid;grid-template-columns:.8fr 1.2fr;gap:36px;align-items:center}
+  .askai > *{min-width:0}
+  .ask-title{font-size:1.6rem;font-weight:700;max-width:none;letter-spacing:-0.015em}
+  .askai p{color:#B9C4CB;margin-top:8px}
+  .ask-field{display:flex;gap:8px;background:#fff;border-radius:999px;padding:6px}
+  .ask-field:focus-within{box-shadow:0 0 0 3px var(--amber)}
+  .ask-field input{flex:1;min-width:0;border:0;background:transparent;font:400 1rem var(--body);padding:10px 14px;color:var(--ink)}
+  .ask-field input:focus{outline:none}
+  .btn-ask{border:0;background:var(--amber);color:var(--ink);font:600 1rem var(--body);border-radius:999px;padding:10px 24px;cursor:pointer}
+  .btn-ask:hover{background:#FFBC2E}
+  .ask-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .ask-chip{background:transparent;border:1px solid #3A4A55;color:#DCE3E8;border-radius:999px;padding:7px 14px;font:500 .9rem var(--body);cursor:pointer;text-align:left}
+  .ask-chip:hover{border-color:#fff;color:#fff}
+  .askai .ask-note{font-size:.85rem;margin-top:12px;color:#8796A0}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
   /* Sections */
   section{padding:96px 0}
@@ -189,7 +185,7 @@
     .svc,.svc.wide{grid-column:span 1}
     .svc.feature{grid-column:span 2}
     .toolkit{grid-template-columns:1fr 1fr}
-    .about-grid,.contact-card{grid-template-columns:1fr}
+    .about-grid,.contact-card,.askai{grid-template-columns:1fr}
     .sec-head{grid-template-columns:1fr}
     .sec-head .lede{justify-self:start}
   }
@@ -203,13 +199,7 @@
     .menu a.cta{margin:8px 0 0;text-align:center}
     .hero{padding-top:32px}
     section{padding:72px 0}
-    .pipeline{padding:24px 20px}
-    .track{grid-template-columns:1fr;gap:18px}
-    .rail{left:15px;right:auto;top:16px;bottom:16px;width:3px;height:auto}
-    .rail-fill{inset:0 auto auto 0;width:100%!important;height:0;transition:height .9s cubic-bezier(.65,0,.35,1)}
-    .stop{display:grid;grid-template-columns:33px 1fr;column-gap:16px;text-align:left;align-items:center}
-    .node{margin:0;grid-row:span 2}
-    .stop span{margin-top:0}
+    .askai{grid-template-columns:1fr;gap:20px;padding:24px 20px}
     .services{grid-template-columns:1fr}
     .svc.feature{grid-column:span 1}
     .case summary{grid-template-columns:1fr auto;gap:12px}
@@ -222,14 +212,14 @@
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto}
     .rise{animation:none;opacity:1;transform:none}
-    .rail-fill,.node,.toggle{transition:none}
+    .toggle{transition:none}
   }
 </style>
 </head>
-<body>
+<body id="top">
 <a class="skip" href="#main">Skip to content</a>
 
-<header class="nav" id="top">
+<header class="nav">
   <div class="wrap">
     <a class="brand" href="#top" aria-label="Jerick Paler, back to top">
       <span class="brand-mark" aria-hidden="true">
@@ -255,8 +245,8 @@
       <div class="hero-grid">
         <div>
           <p class="who rise"><span class="status-dot" aria-hidden="true"></span>Available for new projects</p>
-          <h1 class="rise d1">Leads answered, booked and paid without anyone chasing them.</h1>
-          <p class="lede rise d2">I'm Jerick, an automation specialist and web project manager from the Philippines. I connect the tools your business already uses into one system that follows up, qualifies and closes on its own.</p>
+          <h1 class="rise d1">I build AI phone agents, CRM automations and websites that run your business for you.</h1>
+          <p class="lede rise d2">I'm Jerick, an automation specialist and web project manager from the Philippines. I work with businesses in the US, Australia and Europe, connecting their tools into systems that follow up, qualify and book on their own.</p>
           <div class="hero-actions rise d3">
             <a class="btn btn-primary" href="#work">See my work</a>
             <a class="btn btn-ghost" href="#contact">Start a project</a>
@@ -264,24 +254,30 @@
         </div>
         <div class="portrait-col rise d2">
           <!-- Replace the src below with your photo, e.g. assets/profile.jpg -->
-          <div class="portrait"><img src="assets/profileimage.jpg" alt="Portrait of Jerick Roman Paler" width="600" height="720"></div>
+          <div class="portrait"><img src="assets/profile.jpg" alt="Portrait of Jerick Roman Paler" width="600" height="720"></div>
           <p class="portrait-cap">Based in Davao City, Philippines (UTC+8)</p>
         </div>
       </div>
 
-      <div class="pipeline rise d4" aria-label="Example of an automated lead journey">
-        <div class="pipe-head">
-          <p><strong>A typical build.</strong> One lead, from first message to payment, with no manual steps.</p>
-          <button class="pipe-replay" type="button">Replay</button>
+      <div class="askai rise d4">
+        <div>
+          <h2 class="ask-title">Ask my AI about my work</h2>
+          <p>It answers from my real projects, tools and experience. Pick a question or write your own.</p>
         </div>
-        <div class="track">
-          <div class="rail" aria-hidden="true"><div class="rail-fill"></div></div>
-          <div class="stop"><div class="node"><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="#17242D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><b>Inquiry arrives</b><span>SMS, form or call</span></div>
-          <div class="stop"><div class="node"><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="#17242D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><b>AI qualifies</b><span>Claude or Vapi agent</span></div>
-          <div class="stop"><div class="node"><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="#17242D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><b>Matched and booked</b><span>GoHighLevel calendar</span></div>
-          <div class="stop"><div class="node"><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="#17242D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><b>Contract signed</b><span>GHL documents</span></div>
-          <div class="stop"><div class="node"><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="#17242D" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><b>Payment received</b><span>Detected and closed out</span></div>
-        </div>
+        <!-- Opens your Ask Jerick chat with the question in ?q= -->
+        <form class="ask-form" id="ask-form" action="https://jerickpaler.vercel.app/" method="get" target="_blank" rel="noopener">
+          <label class="sr-only" for="ask-q">Your question</label>
+          <div class="ask-field">
+            <input id="ask-q" name="q" type="text" placeholder="e.g. Have you built a Vapi voice agent?" autocomplete="off">
+            <button class="btn-ask" type="submit">Ask</button>
+          </div>
+          <div class="ask-chips">
+            <button type="button" class="ask-chip">What have you built in GoHighLevel?</button>
+            <button type="button" class="ask-chip">Can you build an AI phone agent for my business?</button>
+            <button type="button" class="ask-chip">What WordPress projects have you done?</button>
+          </div>
+          <p class="ask-note">Opens the chat in a new tab.</p>
+        </form>
       </div>
     </div>
   </div>
@@ -525,27 +521,17 @@
     Object.keys(links).forEach(function(id){ var el = document.getElementById(id); if (el) io.observe(el); });
   }
 
-  // Pipeline animation
-  var stops = Array.prototype.slice.call(document.querySelectorAll('.stop'));
-  var fill = document.querySelector('.rail-fill');
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var timer, i = 0;
-  var vertical = function(){ return window.matchMedia('(max-width:760px)').matches; };
-  function paint(n){
-    stops.forEach(function(s, k){ s.classList.toggle('done', k <= n); s.classList.toggle('current', k === n); });
-    var pct = (Math.max(n,0) / (stops.length - 1)) * 100 + '%';
-    if (vertical()){ fill.style.height = pct; fill.style.width = ''; } else { fill.style.width = pct; fill.style.height = ''; }
-  }
-  function run(){
-    clearInterval(timer); i = 0; paint(-1);
-    if (reduce){ paint(stops.length - 1); return; }
-    setTimeout(function(){ paint(0);
-      timer = setInterval(function(){ i++; paint(i); if (i >= stops.length - 1) clearInterval(timer); }, 1100);
-    }, 900);
-  }
-  document.querySelector('.pipe-replay').addEventListener('click', run);
-  window.addEventListener('resize', function(){ paint(i); });
-  run();
+
+  // Ask my AI
+  var askForm = document.getElementById('ask-form'), askInput = document.getElementById('ask-q');
+  document.querySelectorAll('.ask-chip').forEach(function(c){ c.addEventListener('click', function(){
+    askInput.value = c.textContent;
+    if (askForm.requestSubmit) askForm.requestSubmit(); else askForm.submit();
+  });});
+  askForm.addEventListener('submit', function(e){
+    if (!askInput.value.trim()){ e.preventDefault(); window.open(askForm.action, '_blank', 'noopener'); }
+  });
 
   // Work filters
   var chips = document.querySelectorAll('.chip'), cases = document.querySelectorAll('.case');
@@ -562,6 +548,13 @@
     var done = function(){ copyBtn.textContent = 'Copied'; setTimeout(function(){ copyBtn.textContent = 'Copy'; }, 1800); };
     if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, function(){});
   });
+
+  // Back to top (logo + footer link)
+  document.querySelectorAll('a[href="#top"]').forEach(function(a){ a.addEventListener('click', function(e){
+    e.preventDefault();
+    window.scrollTo({top:0, behavior: reduce ? 'auto' : 'smooth'});
+    if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
+  });});
 
   document.getElementById('year').textContent = new Date().getFullYear();
 })();
