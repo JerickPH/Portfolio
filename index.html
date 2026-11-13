@@ -896,13 +896,36 @@
     if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
   });});
 
-  // Background node network
+  // Background globe: rotating dotted sphere with travelling connection arcs
   (function(){
     var cv = document.getElementById('mesh');
     if (!cv || !cv.getContext) return;
-    var ctx = cv.getContext('2d'), dpr = 1, W = 0, H = 0, nodes = [], pulses = [], raf = 0;
-    var mouse = {x:-9999, y:-9999}, c1 = '108,182,255', c2 = '154,139,255', light = false;
-    var LINK = 150;
+    var ctx = cv.getContext('2d'), W = 0, H = 0, cx = 0, cy = 0, R = 0, k = 1, raf = 0, frame = 0;
+    var c1 = '108,182,255', c2 = '154,139,255', light = false;
+    var rotY = 0, tilt = .38, tiltTarget = .38, cosT, sinT, cosA, sinA;
+    var dots = [], hubs = [], arcs = [], grid = [];
+    var TAU = Math.PI * 2, i, j;
+
+    // Evenly spaced points on a sphere (Fibonacci lattice)
+    var N = 460, ga = Math.PI * (3 - Math.sqrt(5));
+    for (i = 0; i < N; i++){
+      var yy = 1 - (i / (N - 1)) * 2, rr = Math.sqrt(1 - yy * yy), th = ga * i;
+      dots.push([Math.cos(th) * rr, yy, Math.sin(th) * rr]);
+    }
+    for (i = 0; i < 18; i++) hubs.push({p: dots[(Math.random() * N) | 0], ph: Math.random() * TAU});
+    // Meridians and parallels
+    var SEG = 72;
+    for (var m = 0; m < 6; m++){
+      var lon = m * Math.PI / 6, mer = [];
+      for (j = 0; j <= SEG; j++){ var am = j / SEG * TAU; mer.push([Math.cos(am) * Math.cos(lon), Math.sin(am), Math.cos(am) * Math.sin(lon)]); }
+      grid.push(mer);
+    }
+    [-60, -30, 0, 30, 60].forEach(function(lat){
+      var la = lat * Math.PI / 180, par = [];
+      for (var n = 0; n <= SEG; n++){ var ap = n / SEG * TAU; par.push([Math.cos(la) * Math.cos(ap), Math.sin(la), Math.cos(la) * Math.sin(ap)]); }
+      grid.push(par);
+    });
+
     function colors(){
       var cs = getComputedStyle(root);
       c1 = cs.getPropertyValue('--accent-rgb').trim() || c1;
@@ -910,76 +933,108 @@
       light = root.getAttribute('data-theme') === 'light';
     }
     function size(){
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = window.innerWidth; H = window.innerHeight;
       cv.width = W * dpr; cv.height = H * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      LINK = W < 640 ? 115 : 150;
-      var n = Math.max(28, Math.min(95, Math.round(W * H / 15000)));
-      while (nodes.length < n) nodes.push({x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-.5)*.28, vy:(Math.random()-.5)*.28, r:Math.random()*1.4+1, hub:Math.random() < .12});
-      nodes.length = n; pulses = [];
+      if (W < 900){ cx = W * .5; cy = H * .56; R = Math.min(W, H) * .46; k = .6; }
+      else { cx = W * .74; cy = H * .54; R = Math.min(W * .34, H * .44); k = 1; }
     }
-    function draw(){
-      ctx.clearRect(0, 0, W, H);
-      var la = light ? .16 : .13, na = light ? .45 : .5, i, j, a, b, dx, dy, d;
-      for (i = 0; i < nodes.length; i++){
-        a = nodes[i];
-        for (j = i + 1; j < nodes.length; j++){
-          b = nodes[j]; dx = a.x - b.x; dy = a.y - b.y; d = Math.sqrt(dx*dx + dy*dy);
-          if (d < LINK){
-            ctx.strokeStyle = 'rgba(' + c1 + ',' + (la * (1 - d / LINK)).toFixed(3) + ')';
-            ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
-          }
-        }
-        dx = a.x - mouse.x; dy = a.y - mouse.y; d = Math.sqrt(dx*dx + dy*dy);
-        if (d < 190){
-          ctx.strokeStyle = 'rgba(' + c2 + ',' + (.3 * (1 - d / 190)).toFixed(3) + ')';
-          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke();
-        }
-      }
-      for (i = 0; i < nodes.length; i++){
-        a = nodes[i];
-        ctx.fillStyle = 'rgba(' + (a.hub ? c2 : c1) + ',' + (a.hub ? na + .15 : na) + ')';
-        ctx.beginPath(); ctx.arc(a.x, a.y, a.hub ? a.r + 1.2 : a.r, 0, 6.283); ctx.fill();
-        if (a.hub){ ctx.strokeStyle = 'rgba(' + c2 + ',.18)'; ctx.beginPath(); ctx.arc(a.x, a.y, a.r + 5, 0, 6.283); ctx.stroke(); }
-      }
-      // Data packets travelling along links
-      for (i = pulses.length - 1; i >= 0; i--){
-        var p = pulses[i]; a = p.a; b = p.b;
-        dx = a.x - b.x; dy = a.y - b.y;
-        if (Math.sqrt(dx*dx + dy*dy) > LINK || p.t >= 1){ pulses.splice(i, 1); continue; }
-        var x = a.x + (b.x - a.x) * p.t, y = a.y + (b.y - a.y) * p.t;
-        ctx.fillStyle = 'rgba(' + c1 + ',.9)'; ctx.shadowColor = 'rgba(' + c1 + ',.9)'; ctx.shadowBlur = 8;
-        ctx.beginPath(); ctx.arc(x, y, 1.8, 0, 6.283); ctx.fill(); ctx.shadowBlur = 0;
-        p.t += p.s;
-      }
+    // Rotate a unit vector and project it; returns [x, y, depth], depth > 0 faces the viewer
+    function proj(p){
+      var x = p[0] * cosA + p[2] * sinA, z = -p[0] * sinA + p[2] * cosA, y = p[1];
+      return [cx + x * R, cy + (y * cosT - z * sinT) * R, y * sinT + z * cosT];
+    }
+    function slerp(a, b, t, lift){
+      var d = Math.max(-1, Math.min(1, a[0]*b[0] + a[1]*b[1] + a[2]*b[2])), w = Math.acos(d), s = Math.sin(w) || 1;
+      var f1 = Math.sin((1 - t) * w) / s, f2 = Math.sin(t * w) / s, h = 1 + lift * Math.sin(Math.PI * t);
+      return [(a[0]*f1 + b[0]*f2) * h, (a[1]*f1 + b[1]*f2) * h, (a[2]*f1 + b[2]*f2) * h];
     }
     function spawn(){
-      if (pulses.length > 7) return;
-      var a = nodes[Math.random() * nodes.length | 0];
-      for (var k = 0; k < nodes.length; k++){
-        var b = nodes[k]; if (b === a) continue;
-        var dx = a.x - b.x, dy = a.y - b.y;
-        if (Math.sqrt(dx*dx + dy*dy) < LINK * .85){ pulses.push({a:a, b:b, t:0, s:.008 + Math.random() * .01}); return; }
+      var a = hubs[(Math.random() * hubs.length) | 0].p, b = hubs[(Math.random() * hubs.length) | 0].p;
+      if (a === b) return;
+      var d = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+      if (d > .9 || d < -.6) return;
+      arcs.push({a: a, b: b, t: 0, s: .006 + Math.random() * .004, lift: .12 + (1 - d) * .14});
+    }
+    function draw(){
+      cosA = Math.cos(rotY); sinA = Math.sin(rotY); cosT = Math.cos(tilt); sinT = Math.sin(tilt);
+      ctx.clearRect(0, 0, W, H);
+      var boost = light ? 1.25 : 1, p, q, a, prev;
+
+      // Atmosphere glow and rim
+      var g = ctx.createRadialGradient(cx, cy, R * .85, cx, cy, R * 1.35);
+      g.addColorStop(0, 'rgba(' + c1 + ',' + (.07 * k) + ')'); g.addColorStop(1, 'rgba(' + c1 + ',0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.35, 0, TAU); ctx.fill();
+      ctx.strokeStyle = 'rgba(' + c1 + ',' + (.14 * k * boost) + ')'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
+
+      // Grid lines, brighter on the near side
+      ctx.lineWidth = .8;
+      for (i = 0; i < grid.length; i++){
+        var line = grid[i]; prev = proj(line[0]);
+        for (j = 1; j < line.length; j++){
+          p = proj(line[j]); a = (prev[2] + p[2]) / 2;
+          ctx.strokeStyle = 'rgba(' + c1 + ',' + ((a > 0 ? .03 + .09 * a : .018) * k * boost).toFixed(3) + ')';
+          ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
+          prev = p;
+        }
+      }
+      // Surface dots
+      for (i = 0; i < dots.length; i++){
+        p = proj(dots[i]);
+        a = p[2] > 0 ? .12 + .5 * p[2] : .05 + .05 * (1 + p[2]);
+        ctx.fillStyle = 'rgba(' + c1 + ',' + (a * k * boost).toFixed(3) + ')';
+        var sz = p[2] > 0 ? 1.8 : 1.2;
+        ctx.fillRect(p[0] - sz / 2, p[1] - sz / 2, sz, sz);
+      }
+      // Hub nodes with a soft pulse
+      for (i = 0; i < hubs.length; i++){
+        var hb = hubs[i]; p = proj(hb.p);
+        if (p[2] < -.1) continue;
+        var vis = Math.max(0, p[2]) * k, pulse = (Math.sin(frame * .04 + hb.ph) + 1) / 2;
+        ctx.fillStyle = 'rgba(' + c2 + ',' + (.75 * vis * boost).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(p[0], p[1], 2.4, 0, TAU); ctx.fill();
+        ctx.strokeStyle = 'rgba(' + c2 + ',' + (.35 * (1 - pulse) * vis).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(p[0], p[1], 3 + pulse * 9, 0, TAU); ctx.stroke();
+      }
+      // Connection arcs: draw in, then retract, with a glowing packet at the head
+      ctx.lineWidth = 1.3;
+      for (i = arcs.length - 1; i >= 0; i--){
+        var ar = arcs[i], head = Math.min(1, ar.t), tail = Math.max(0, ar.t - .7);
+        if (tail >= 1){ arcs.splice(i, 1); continue; }
+        var steps = 40; prev = null;
+        for (j = 0; j <= steps; j++){
+          q = proj(slerp(ar.a, ar.b, tail + (head - tail) * j / steps, ar.lift));
+          if (prev){
+            a = (prev[2] + q[2]) / 2; a = a > -.15 ? .2 + .55 * Math.max(0, a) : .06;
+            ctx.strokeStyle = 'rgba(' + c2 + ',' + (a * (j / steps) * k * boost).toFixed(3) + ')';
+            ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+          }
+          prev = q;
+        }
+        if (ar.t < 1 && q[2] > -.15){
+          ctx.fillStyle = 'rgba(' + c1 + ',' + (.95 * k) + ')'; ctx.shadowColor = 'rgba(' + c1 + ',1)'; ctx.shadowBlur = 10;
+          ctx.beginPath(); ctx.arc(q[0], q[1], 2.2, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+        }
+        if (!reduce) ar.t += ar.s;
       }
     }
     function step(){
-      for (var i = 0; i < nodes.length; i++){
-        var n = nodes[i]; n.x += n.vx; n.y += n.vy;
-        if (n.x < -20) n.x = W + 20; else if (n.x > W + 20) n.x = -20;
-        if (n.y < -20) n.y = H + 20; else if (n.y > H + 20) n.y = -20;
-      }
-      if (Math.random() < .04) spawn();
+      frame++; rotY += .0016; tilt += (tiltTarget - tilt) * .03;
+      if (arcs.length < 6 && frame % 45 === 0) spawn();
       draw(); raf = requestAnimationFrame(step);
     }
     function start(){ if (!raf && !reduce) raf = requestAnimationFrame(step); }
     function stop(){ cancelAnimationFrame(raf); raf = 0; }
     colors(); size();
-    if (reduce) draw(); else start();
+    if (reduce){ for (i = 0; i < 12 && arcs.length < 4; i++) spawn(); arcs.forEach(function(x){ x.t = .85; }); draw(); }
+    else start();
     window.addEventListener('resize', function(){ size(); if (reduce) draw(); });
-    window.addEventListener('pointermove', function(e){ if (e.pointerType === 'mouse'){ mouse.x = e.clientX; mouse.y = e.clientY; } }, {passive:true});
-    document.addEventListener('mouseleave', function(){ mouse.x = mouse.y = -9999; });
-    document.addEventListener('visibilitychange', function(){ document.hidden ? stop() : start(); });
+    window.addEventListener('pointermove', function(e){
+      if (e.pointerType === 'mouse') tiltTarget = .38 + (e.clientY / H - .5) * .25;
+    }, {passive:true});
+    document.addEventListener('visibilitychange', function(){ if (document.hidden) stop(); else start(); });
     new MutationObserver(function(){ colors(); if (reduce) draw(); }).observe(root, {attributes:true, attributeFilter:['data-theme']});
   })();
 
