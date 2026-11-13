@@ -274,11 +274,16 @@
   .demo-run{margin-top:6px;width:100%}
   .demo-run[disabled]{opacity:.6;cursor:progress;transform:none}
   .demo-note{margin:0;font:400 .76rem/1.5 var(--mono);color:var(--faint);text-align:center}
+  .demo-callout{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid rgba(var(--accent-2-rgb),.35);border-radius:9px;background:rgba(var(--accent-2-rgb),.07);color:var(--muted);font-size:.86rem;line-height:1.55}
+  .demo-callout svg{flex:none;margin-top:2px;color:var(--accent-2)}
+  .demo-callout p{margin:0}
+  .demo-callout strong{color:var(--text)}
 
   .flow{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;position:relative}
   .flow::before{content:"";position:absolute;left:27px;top:28px;bottom:28px;width:1px;background:repeating-linear-gradient(to bottom,var(--line-strong) 0 4px,transparent 4px 9px)}
-  .flow-step{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--surface);transition:border-color .3s,box-shadow .3s,opacity .3s;opacity:.7}
-  .flow-step.running,.flow-step.done{opacity:1}
+  .flow-step{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--surface);transition:border-color .3s,box-shadow .3s}
+  .flow-head{transition:opacity .3s}
+  .flow-step:not(.running):not(.done) .flow-head{opacity:.6}
   .flow-step.running{border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.08)}
   .flow-step.done{border-color:rgba(var(--accent-2-rgb),.35)}
   .flow-head{display:grid;grid-template-columns:auto auto 1fr auto;align-items:center;gap:12px;padding:16px 18px}
@@ -790,7 +795,11 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
             Run automation
           </button>
-          <p class="demo-note">Preview mode: nothing is sent or stored.</p>
+          <div class="demo-callout" role="note">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <p><strong>Demo only.</strong> This is a simplified, generic flow to show how an automation works. A real build is designed around your business: your requirements, your tools and the way your team works.</p>
+          </div>
+          <p class="demo-note">Nothing is sent or stored.</p>
         </form>
 
         <ol class="flow" id="demo-flow" aria-live="polite">
