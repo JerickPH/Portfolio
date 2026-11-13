@@ -951,6 +951,72 @@
       c2 = cs.getPropertyValue('--accent-2-rgb').trim() || c2;
       light = root.getAttribute('data-theme') === 'light';
     }
+    // Desktop-only workflow graphic on the left: automation steps joined by connectors
+    var FLOW = [
+      {x: .10, y: .04, t: 'Webhook'}, {x: .42, y: .18, t: 'AI Agent'},
+      {x: .08, y: .36, t: 'CRM'}, {x: .72, y: .36, t: 'Calendar'},
+      {x: .40, y: .55, t: 'If / Else'}, {x: .08, y: .74, t: 'SMS'},
+      {x: .72, y: .74, t: 'Invoice'}, {x: .40, y: .93, t: 'Slack'}
+    ];
+    var FLOW_EDGES = [[0,1],[1,2],[1,3],[2,4],[3,4],[4,5],[4,6],[5,7],[6,7]];
+    var flowOn = false, fbx = 0, fby = 0, fbw = 0, fbh = 0, fpk = [], fglow = FLOW.map(function(){ return 0; });
+    var NW = 104, NH = 30, flowLabels = true;
+    function fpos(i){
+      var n = FLOW[i];
+      return [fbx + (n.x / .72) * (fbw - NW), fby + n.y * fbh + (reduce ? 0 : Math.sin(frame * .012 + i * 1.3) * 3)];
+    }
+    // Connector from the bottom of one step to the top of the next, as a smooth S-curve
+    function fcurve(i, j, t){
+      var a = fpos(i), b = fpos(j), x0 = a[0] + NW / 2, y0 = a[1] + NH, x1 = b[0] + NW / 2, y1 = b[1], my = (y0 + y1) / 2, u = 1 - t;
+      return [u*u*u*x0 + 3*u*u*t*x0 + 3*u*t*t*x1 + t*t*t*x1, u*u*u*y0 + 3*u*u*t*my + 3*u*t*t*my + t*t*t*y1];
+    }
+    function flowRun(){ FLOW_EDGES.forEach(function(e, ei){ if (e[0] === 0) fpk.push({e: ei, t: 0}); }); fglow[0] = 1; }
+    function drawFlow(boost){
+      if (!flowOn) return;
+      var i, e, a, b, pt;
+      ctx.lineWidth = 1;
+      for (i = 0; i < FLOW_EDGES.length; i++){
+        e = FLOW_EDGES[i]; a = fpos(e[0]); b = fpos(e[1]);
+        var x0 = a[0] + NW / 2, y0 = a[1] + NH, x1 = b[0] + NW / 2, y1 = b[1], my = (y0 + y1) / 2;
+        ctx.strokeStyle = 'rgba(' + c1 + ',' + (.16 * boost).toFixed(3) + ')';
+        ctx.setLineDash([4, 5]);
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.bezierCurveTo(x0, my, x1, my, x1, y1); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      // Packets running along connectors; on arrival they light the step and move on
+      for (i = fpk.length - 1; i >= 0; i--){
+        var pk = fpk[i];
+        if (pk.t >= 1){
+          fpk.splice(i, 1);
+          var to = FLOW_EDGES[pk.e][1]; fglow[to] = 1;
+          FLOW_EDGES.forEach(function(e2, ei){
+            if (e2[0] === to && !fpk.some(function(x){ return x.e === ei; })) fpk.push({e: ei, t: 0});
+          });
+          continue;
+        }
+        pt = fcurve(FLOW_EDGES[pk.e][0], FLOW_EDGES[pk.e][1], pk.t);
+        ctx.fillStyle = 'rgba(' + c1 + ',.85)'; ctx.shadowColor = 'rgba(' + c1 + ',.9)'; ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.arc(pt[0], pt[1], 2.2, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+        if (!reduce) pk.t += .012;
+      }
+      // Step cards
+      ctx.font = '500 11px "DM Mono", ui-monospace, monospace'; ctx.textBaseline = 'middle';
+      for (i = 0; i < FLOW.length; i++){
+        a = fpos(i); var gl = fglow[i];
+        ctx.fillStyle = 'rgba(' + c1 + ',' + ((.035 + .06 * gl) * boost).toFixed(3) + ')';
+        ctx.strokeStyle = 'rgba(' + (gl > .05 ? c2 : c1) + ',' + ((.2 + .35 * gl) * boost).toFixed(3) + ')';
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(a[0], a[1], NW, NH, flowLabels ? 8 : 6); else ctx.rect(a[0], a[1], NW, NH);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = 'rgba(' + (i === 0 ? c2 : c1) + ',' + ((.45 + .4 * gl) * boost).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(flowLabels ? a[0] + 14 : a[0] + NW / 2, a[1] + NH / 2, 3, 0, TAU); ctx.fill();
+        if (flowLabels){
+          ctx.fillStyle = 'rgba(' + c1 + ',' + ((.38 + .4 * gl) * boost).toFixed(3) + ')';
+          ctx.fillText(FLOW[i].t, a[0] + 26, a[1] + NH / 2 + 1);
+        }
+        if (!reduce) fglow[i] *= .97;
+      }
+    }
     function size(){
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = window.innerWidth; H = window.innerHeight;
@@ -958,6 +1024,12 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (W < 900){ cx = W * .5; cy = H * .56; R = Math.min(W, H) * .46; k = .6; }
       else { cx = W * .74; cy = H * .54; R = Math.min(W * .34, H * .44); k = 1; }
+      // Fit the workflow into the empty margin left of the content column (1160px wide)
+      var gutter = (W - 1160) / 2 - 8;
+      flowLabels = gutter >= 230;
+      NW = flowLabels ? 104 : 22; NH = flowLabels ? 30 : 22;
+      flowOn = W >= 1100 && gutter >= 70;
+      fbx = 16; fbw = Math.min(flowLabels ? 300 : 110, gutter - 16); fby = H * .18; fbh = H * .68;
     }
     // Rotate a unit vector and project it; returns [x, y, depth], depth > 0 faces the viewer
     function proj(p){
@@ -980,6 +1052,7 @@
       cosA = Math.cos(rotY); sinA = Math.sin(rotY); cosT = Math.cos(tilt); sinT = Math.sin(tilt);
       ctx.clearRect(0, 0, W, H);
       var boost = light ? 1.25 : 1, p, q, a, prev;
+      drawFlow(boost);
 
       // Surface dots: size and brightness follow depth so the dots alone read as a sphere
       for (i = 0; i < dots.length; i++){
@@ -1080,6 +1153,7 @@
       frame++; rotY += .0016; tilt += (tiltTarget - tilt) * .03;
       if (arcs.length < 6 && frame % 45 === 0) spawn();
       if (frame % 30 === 0 && links.length) fire();
+      if (flowOn && frame % 300 === 1) flowRun();
       draw(); raf = requestAnimationFrame(step);
     }
     function start(){ if (!raf && !reduce) raf = requestAnimationFrame(step); }
