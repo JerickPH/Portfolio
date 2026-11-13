@@ -260,12 +260,54 @@
   .role ul{list-style:disc;margin:10px 0 0;padding-left:20px;max-width:72ch;color:var(--muted);font-size:.95rem}
   .role li{margin-bottom:6px}
 
-  /* Process */
-  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-  .step{padding:26px}
-  .step-num{display:inline-grid;place-items:center;min-width:44px;height:44px;padding:0 10px;white-space:nowrap;margin-bottom:18px;border:1px solid rgba(var(--accent-rgb),.25);border-radius:10px;background:rgba(var(--accent-rgb),.07);font:500 .95rem var(--mono);color:var(--accent)}
-  .step-num::before{content:"0"}
-  .step p{color:var(--muted);margin-top:10px;font-size:.95rem}
+  /* Live demo */
+  .demo{display:grid;grid-template-columns:.85fr 1.15fr;gap:18px;align-items:start}
+  .demo > *,.flow-step,.flow-body{min-width:0}
+  .demo-input{padding:26px;display:flex;flex-direction:column;gap:12px;position:sticky;top:calc(var(--nav-h) + 20px)}
+  .demo-input,.demo-input:hover{transform:none;background:var(--surface)}
+  .demo-label{margin:0;font:400 .74rem var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+  .demo-input textarea{width:100%;resize:vertical;min-height:120px;border:1px solid var(--line-strong);border-radius:9px;background:var(--page);color:var(--text);font:400 .98rem/1.6 var(--body);padding:12px 14px;transition:border-color .2s,box-shadow .2s}
+  .demo-input textarea::placeholder{color:var(--faint)}
+  .demo-input textarea:focus{outline:none;border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.12)}
+  .demo-count{align-self:flex-end;margin-top:-6px;font:400 .72rem var(--mono);color:var(--faint)}
+  .demo-examples{display:flex;flex-wrap:wrap;gap:8px}
+  .demo-run{margin-top:6px;width:100%}
+  .demo-run[disabled]{opacity:.6;cursor:progress;transform:none}
+  .demo-note{margin:0;font:400 .76rem/1.5 var(--mono);color:var(--faint);text-align:center}
+
+  .flow{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;position:relative}
+  .flow::before{content:"";position:absolute;left:27px;top:28px;bottom:28px;width:1px;background:repeating-linear-gradient(to bottom,var(--line-strong) 0 4px,transparent 4px 9px)}
+  .flow-step{position:relative;border:1px solid var(--line);border-radius:10px;background:var(--surface);transition:border-color .3s,box-shadow .3s,opacity .3s;opacity:.7}
+  .flow-step.running,.flow-step.done{opacity:1}
+  .flow-step.running{border-color:rgba(var(--accent-rgb),.55);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.08)}
+  .flow-step.done{border-color:rgba(var(--accent-2-rgb),.35)}
+  .flow-head{display:grid;grid-template-columns:auto auto 1fr auto;align-items:center;gap:12px;padding:16px 18px}
+  .flow-head h3{font-size:1rem;margin:0}
+  .flow-dot{width:20px;height:20px;border-radius:50%;border:1px solid var(--line-strong);background:var(--page);position:relative;z-index:1}
+  .running .flow-dot{border-color:var(--accent);box-shadow:0 0 0 4px rgba(var(--accent-rgb),.15);animation:pulse 1.2s ease-in-out infinite}
+  .done .flow-dot{border-color:var(--accent-2);background:var(--accent-2)}
+  .done .flow-dot::after{content:"";position:absolute;left:6px;top:3px;width:5px;height:9px;border:solid var(--on-accent);border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .flow-kind{font:400 .68rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:5px;padding:3px 7px}
+  .flow-state{font:400 .72rem var(--mono);color:var(--faint)}
+  .running .flow-state{color:var(--accent)}
+  .done .flow-state{color:var(--accent-2)}
+  .flow-body{display:none;padding:0 18px 18px 50px;color:var(--muted);font-size:.93rem}
+  .done .flow-body{display:block;animation:rise .45s cubic-bezier(.2,.7,.2,1)}
+  .flow-body pre{margin:0;padding:12px 14px;border-radius:8px;background:var(--page);border:1px solid var(--line);font:400 .78rem/1.6 var(--mono);color:var(--text);white-space:pre-wrap;word-break:break-word}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0}
+  .kv dt{font:400 .74rem var(--mono);color:var(--faint);padding-top:2px}
+  .kv dd{margin:0;color:var(--text)}
+  .score{display:flex;align-items:center;gap:10px}
+  .score-bar{flex:1;max-width:180px;height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+  .score-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .8s cubic-bezier(.2,.7,.2,1)}
+  .route{display:flex;flex-wrap:wrap;gap:8px}
+  .route span{font:500 .78rem var(--mono);padding:6px 10px;border-radius:7px;border:1px solid var(--line);color:var(--faint)}
+  .route span.on{border-color:rgba(var(--accent-rgb),.55);background:rgba(var(--accent-rgb),.1);color:var(--accent)}
+  .route-why{margin:10px 0 0}
+  .reply{margin:0;padding:14px 16px;border-left:2px solid var(--accent);background:rgba(var(--accent-rgb),.05);border-radius:0 8px 8px 0;color:var(--text);white-space:pre-line}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tags span{font:400 .72rem var(--mono);padding:3px 8px;border-radius:5px;background:rgba(var(--accent-2-rgb),.12);color:var(--accent-2)}
+  .demo + .toolkit{margin-top:56px}
 
   /* Toolkit */
   .toolkit{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:40px}
@@ -320,6 +362,8 @@
     .svc,.svc.wide{grid-column:span 1}
     .svc.feature{grid-column:span 2}
     .toolkit{grid-template-columns:1fr 1fr}
+    .demo{grid-template-columns:1fr}
+    .demo-input{position:static}
     .about-grid,.contact-card,.askai{grid-template-columns:1fr}
     .sec-head{grid-template-columns:1fr}
     .sec-head .lede{justify-self:start}
@@ -346,7 +390,10 @@
     .case .meta{grid-column:1;grid-row:2}
     .case .toggle{grid-row:1/span 2;grid-column:2}
     .case-body{grid-template-columns:1fr;margin:0 20px}
-    .steps{grid-template-columns:1fr}
+    .flow-kind{display:none}
+    .flow-head{grid-template-columns:auto 1fr auto;padding:14px 16px}
+    .flow-body{padding:0 16px 16px}
+    .flow::before{left:25px}
     .toolkit{grid-template-columns:1fr}
     .exp-item{grid-template-columns:1fr;gap:10px;padding:24px 20px}
     .facts div{grid-template-columns:1fr;gap:4px}
@@ -378,7 +425,7 @@
         <li><a href="#services">Services</a></li>
         <li><a href="#work">Work</a></li>
         <li><a href="#experience">Experience</a></li>
-        <li><a href="#process">Process</a></li>
+        <li><a href="#demo">Demo</a></li>
         <li><a href="#about">About</a></li>
         <li><a class="cta" href="#contact">Contact</a></li>
       </ul>
@@ -716,17 +763,55 @@
     </div>
   </section>
 
-  <!-- PROCESS -->
-  <section id="process">
+  <!-- DEMO -->
+  <section id="demo">
     <div class="wrap">
       <div class="sec-head">
-        <div><span class="eyebrow"><span>04</span>Process</span><h2>How a project runs</h2></div>
-        <p class="lede">Three stages, with a clear scope and price agreed before anything is built.</p>
+        <div><span class="eyebrow"><span>04</span>Live demo</span><h2>See an automation run</h2></div>
+        <p class="lede">Type an enquiry the way a real lead would. The workflow qualifies it, picks a route, drafts the reply and prepares the CRM record, step by step.</p>
       </div>
-      <div class="steps">
-        <div class="step card"><div class="step-num">1</div><h3>Map</h3><p>We walk through how a lead moves today and where it stalls. You get a written plan with scope, timeline and a fixed price.</p></div>
-        <div class="step card"><div class="step-num">2</div><h3>Build and test</h3><p>I build inside your accounts and test every path with realistic data, then show you each one working before launch.</p></div>
-        <div class="step card"><div class="step-num">3</div><h3>Hand over</h3><p>You get an operations guide, a sign-off checklist and support while your team settles in.</p></div>
+
+      <div class="demo">
+        <form class="demo-input card" id="demo-form" autocomplete="off">
+          <label class="demo-label" for="demo-msg">Incoming enquiry</label>
+          <textarea id="demo-msg" maxlength="400" rows="5" placeholder="e.g. I run a dental clinic and we miss a lot of calls after hours. Can you help?" required></textarea>
+          <div class="demo-count"><span id="demo-count">0</span>/400</div>
+          <p class="demo-label">Or try an example</p>
+          <div class="demo-examples">
+            <button type="button" class="ask-chip" data-example="I run a dental clinic and we miss a lot of calls after hours. Patients go to other clinics. Need this fixed asap.">Dental clinic</button>
+            <button type="button" class="ask-chip" data-example="Real estate agent here. I get around 40 leads a month from Facebook ads but I can't follow up with all of them fast enough.">Real estate agent</button>
+            <button type="button" class="ask-chip" data-example="We have a Shopify store and lots of abandoned carts. Also our invoices are still done manually in Xero.">E-commerce store</button>
+            <button type="button" class="ask-chip" data-example="Plumbing business. Booking jobs over the phone takes forever and customers don't show up for appointments.">Plumbing business</button>
+          </div>
+          <button class="btn btn-primary demo-run" type="submit" id="demo-run">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+            Run automation
+          </button>
+          <p class="demo-note">Preview mode: nothing is sent or stored.</p>
+        </form>
+
+        <ol class="flow" id="demo-flow" aria-live="polite">
+          <li class="flow-step" data-step="0">
+            <div class="flow-head"><span class="flow-dot" aria-hidden="true"></span><span class="flow-kind">Trigger</span><h3>Webhook</h3><span class="flow-state">Waiting</span></div>
+            <div class="flow-body" data-out="webhook"></div>
+          </li>
+          <li class="flow-step" data-step="1">
+            <div class="flow-head"><span class="flow-dot" aria-hidden="true"></span><span class="flow-kind">Scoring</span><h3>Qualify lead</h3><span class="flow-state">Waiting</span></div>
+            <div class="flow-body" data-out="qualify"></div>
+          </li>
+          <li class="flow-step" data-step="2">
+            <div class="flow-head"><span class="flow-dot" aria-hidden="true"></span><span class="flow-kind">If / Else</span><h3>Route by score</h3><span class="flow-state">Waiting</span></div>
+            <div class="flow-body" data-out="route"></div>
+          </li>
+          <li class="flow-step" data-step="3">
+            <div class="flow-head"><span class="flow-dot" aria-hidden="true"></span><span class="flow-kind">Template</span><h3>Draft reply</h3><span class="flow-state">Waiting</span></div>
+            <div class="flow-body" data-out="reply"></div>
+          </li>
+          <li class="flow-step" data-step="4">
+            <div class="flow-head"><span class="flow-dot" aria-hidden="true"></span><span class="flow-kind">CRM</span><h3>Create contact</h3><span class="flow-state">Waiting</span></div>
+            <div class="flow-body" data-out="crm"></div>
+          </li>
+        </ol>
       </div>
 
       <div class="toolkit" aria-label="Toolkit">
@@ -857,7 +942,7 @@
 
   // Reveal on scroll
   if ('IntersectionObserver' in window && !reduce){
-    var items = document.querySelectorAll('section .sec-head, .svc, .case, .exp-item, .step, .tk, .about-grid > div, .facts, .contact-card');
+    var items = document.querySelectorAll('section .sec-head, .svc, .case, .exp-item, .demo-input, .flow, .tk, .about-grid > div, .facts, .contact-card');
     var ro = new IntersectionObserver(function(entries){
       entries.forEach(function(e){ if (e.isIntersecting){ e.target.classList.add('in'); ro.unobserve(e.target); } });
     }, {rootMargin:'0px 0px -8% 0px', threshold:.08});
@@ -896,6 +981,163 @@
     window.scrollTo({top:0, behavior: reduce ? 'auto' : 'smooth'});
     if (history.replaceState) history.replaceState(null, '', location.pathname + location.search);
   });});
+
+  // Live automation demo. Runs on built-in rules; qualify() is the single place
+  // to swap in an AI call later if one is added. All visitor text is rendered with textContent only.
+  (function(){
+    var form = document.getElementById('demo-form');
+    if (!form) return;
+    var msg = document.getElementById('demo-msg'), count = document.getElementById('demo-count');
+    var runBtn = document.getElementById('demo-run'), steps = document.querySelectorAll('#demo-flow .flow-step');
+    var running = false;
+
+    var INDUSTRIES = [
+      ['Healthcare', /dental|dentist|clinic|doctor|medical|health|chiro|physio|patient|vet\b/],
+      ['Real estate', /real estate|realtor|property|properties|listing|broker|mortgage|buyers|sellers/],
+      ['E-commerce', /shopify|woocommerce|e-?commerce|online store|\bstore\b|\bshop\b|orders|products|cart/],
+      ['Home services', /plumb|hvac|electric|roof|contractor|cleaning|landscap|pest|handyman|repair/],
+      ['Legal', /\blaw\b|legal|attorney|lawyer/],
+      ['Hospitality', /restaurant|cafe|café|\bbar\b|hotel|catering/],
+      ['Agency', /agency|marketing|clients/],
+      ['Coaching', /coach|course|consult|mentor/],
+      ['Education', /school|tutor|academy|students/]
+    ];
+    var NEEDS = [
+      {re: /miss(ed|ing)? (a lot of )?calls?|after.?hours|voicemail|unanswered/, need: 'Missed-call follow-up', tag: 'missed-calls',
+       plan: 'an AI voice agent that answers after hours, books the caller in, and texts back anyone who hangs up'},
+      {re: /abandon(ed)? cart/, need: 'Abandoned cart recovery', tag: 'cart-recovery',
+       plan: 'an email and SMS sequence that brings shoppers back to their cart within the hour'},
+      {re: /invoice|invoicing|billing|payment|xero|quickbooks/, need: 'Invoicing and payment automation', tag: 'invoicing',
+       plan: 'invoices that create themselves when a job or order closes, with automatic payment reminders'},
+      {re: /\bbook(ing|ings|ed)?\b|appointment|schedul|calendar|no.?show|don.?t show/, need: 'Booking and reminders', tag: 'booking',
+       plan: 'online booking with SMS and email reminders that cut no-shows'},
+      {re: /follow.?up|leads?|enquir|inquir|respond|reply|ads/, need: 'Lead follow-up automation', tag: 'lead-follow-up',
+       plan: 'instant replies to every new lead, then a short follow-up sequence until they book'},
+      {re: /review/, need: 'Review requests', tag: 'reviews',
+       plan: 'automatic review requests sent after each completed job'},
+      {re: /crm|spreadsheet|manual|data entry|copy.?paste/, need: 'CRM sync and data entry', tag: 'crm-sync',
+       plan: 'your tools connected so contacts and deals sync without copy and paste'},
+      {re: /onboard/, need: 'Client onboarding', tag: 'onboarding',
+       plan: 'an onboarding flow that sends forms, contracts and welcome emails on its own'},
+      {re: /website|landing page|\bsite\b/, need: 'Website and lead capture', tag: 'website',
+       plan: 'a fast website with forms that feed straight into your CRM'}
+    ];
+    var HIGH = /asap|urgent|losing|lose|miss|every day|daily|overwhelm|can.?t keep up|forever|right now|this week|fixed/;
+    var MED = /soon|this month|next month|planning|growing|grow|scale|thinking/;
+
+    // Rules-based qualification. Returns the same shape an AI call would.
+    function qualify(text){
+      var t = text.toLowerCase(), i, industry = 'General business', needs = [];
+      for (i = 0; i < INDUSTRIES.length; i++) if (INDUSTRIES[i][1].test(t)){ industry = INDUSTRIES[i][0]; break; }
+      for (i = 0; i < NEEDS.length && needs.length < 2; i++) if (NEEDS[i].re.test(t)) needs.push(NEEDS[i]);
+      var urgency = HIGH.test(t) ? 'High' : MED.test(t) ? 'Medium' : 'Low';
+      var volume = (t.match(/\b\d{2,}\b/) || [])[0];
+      var score = 28 + (industry !== 'General business' ? 10 : 0) + (needs.length ? 18 : 0) + (needs.length > 1 ? 6 : 0)
+        + (urgency === 'High' ? 24 : urgency === 'Medium' ? 12 : 0) + (volume ? 8 : 0) + (t.length > 80 ? 5 : 0);
+      score = Math.min(97, score);
+      var tier = score >= 70 ? 'Hot' : score >= 45 ? 'Warm' : 'Cold';
+      return {industry: industry, needs: needs, urgency: urgency, volume: volume, score: score, tier: tier};
+    }
+    var ROUTES = {
+      Hot: {label: 'Hot → book a call', why: 'Clear need and high urgency, so the lead goes straight to the calendar.', stage: 'Call booked', task: 'Discovery call within 24 hours'},
+      Warm: {label: 'Warm → send case study', why: 'Real need but no rush yet, so the lead gets a relevant example and a follow-up in two days.', stage: 'Nurturing', task: 'Follow up in 2 days'},
+      Cold: {label: 'Cold → nurture sequence', why: 'Not enough detail yet, so the lead joins a light email sequence instead of a sales call.', stage: 'New lead', task: 'Monthly newsletter'}
+    };
+    function draftReply(q){
+      var need = q.needs[0];
+      var intro = 'Hi there, thanks for reaching out.';
+      var body = need
+        ? 'From what you described, the quickest win is ' + need.plan + '.'
+        : 'It sounds like there is a process slowing you down. The best first step is a short audit to find the task worth automating first.';
+      var extra = q.needs[1] ? ' After that, we can look at ' + q.needs[1].need.toLowerCase() + ' as a second step.' : '';
+      var cta = q.tier === 'Hot' ? 'You can grab a 20-minute call on my calendar today and I will map it out with you.'
+        : q.tier === 'Warm' ? 'I have attached a short case study from a similar ' + q.industry.toLowerCase() + ' setup. Happy to talk whenever suits you.'
+        : 'If you can share a little more about how you work today, I can point you in the right direction.';
+      return intro + '\n\n' + body + extra + '\n\n' + cta + '\n\nJerick';
+    }
+
+    function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    function kv(rows){
+      var dl = el('dl', 'kv');
+      rows.forEach(function(r){ dl.appendChild(el('dt', null, r[0])); var dd = el('dd'); if (typeof r[1] === 'string') dd.textContent = r[1]; else dd.appendChild(r[1]); dl.appendChild(dd); });
+      return dl;
+    }
+    function render(text, q){
+      var out = {}, now = new Date();
+      document.querySelectorAll('#demo-flow [data-out]').forEach(function(b){ b.textContent = ''; out[b.dataset.out] = b; });
+
+      out.webhook.appendChild(el('pre', null, JSON.stringify({
+        source: 'portfolio-demo', received_at: now.toISOString().slice(0, 19) + 'Z', message: text
+      }, null, 2)));
+
+      var score = el('div', 'score'), bar = el('div', 'score-bar'), fill = el('span');
+      bar.appendChild(fill); score.appendChild(bar); score.appendChild(el('strong', null, q.score + '/100'));
+      out.qualify.appendChild(kv([
+        ['Industry', q.industry],
+        ['Need', q.needs.length ? q.needs.map(function(n){ return n.need; }).join(', ') : 'Not clear yet'],
+        ['Urgency', q.urgency],
+        ['Volume', q.volume ? 'Mentions ' + q.volume : 'Not mentioned'],
+        ['Lead score', score]
+      ]));
+      out.qualify._fill = fill;
+
+      var route = el('div', 'route');
+      ['Hot', 'Warm', 'Cold'].forEach(function(k){ route.appendChild(el('span', k === q.tier ? 'on' : '', ROUTES[k].label)); });
+      out.route.appendChild(route);
+      out.route.appendChild(el('p', 'route-why', ROUTES[q.tier].why));
+
+      out.reply.appendChild(el('p', 'reply', draftReply(q)));
+
+      var tags = el('div', 'tags');
+      [q.industry.toLowerCase().replace(/\s+/g, '-'), q.tier.toLowerCase() + '-lead'].concat(q.needs.map(function(n){ return n.tag; }))
+        .forEach(function(tg){ tags.appendChild(el('span', null, tg)); });
+      out.crm.appendChild(kv([
+        ['Contact', 'Demo visitor'],
+        ['Source', 'Portfolio website'],
+        ['Pipeline', 'Leads → ' + ROUTES[q.tier].stage],
+        ['Tags', tags],
+        ['Next task', ROUTES[q.tier].task]
+      ]));
+      return out;
+    }
+
+    function setState(stepEl, state){
+      stepEl.classList.remove('running', 'done');
+      if (state) stepEl.classList.add(state);
+      stepEl.querySelector('.flow-state').textContent = state === 'running' ? 'Running…' : state === 'done' ? 'Done' : 'Waiting';
+    }
+    function run(text){
+      if (running) return;
+      running = true; runBtn.disabled = true;
+      var q = qualify(text), out = render(text, q), i = 0;
+      steps.forEach(function(s){ setState(s, null); });
+      var delay = reduce ? 0 : 750;
+      (function next(){
+        if (i > 0) setState(steps[i - 1], 'done');
+        if (i === 2) out.qualify._fill.style.width = q.score + '%';
+        if (i >= steps.length){ running = false; runBtn.disabled = false; return; }
+        setState(steps[i], 'running');
+        i++;
+        setTimeout(next, delay + (i === 2 || i === 4 ? 350 : 0));
+      })();
+    }
+
+    msg.addEventListener('input', function(){ count.textContent = msg.value.length; });
+    document.querySelectorAll('[data-example]').forEach(function(b){
+      b.addEventListener('click', function(){
+        msg.value = b.dataset.example; count.textContent = msg.value.length;
+        run(msg.value);
+      });
+    });
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var text = msg.value.trim();
+      if (text.length < 10){ msg.focus(); msg.setCustomValidity('Write a sentence or two about the business.'); msg.reportValidity(); return; }
+      msg.setCustomValidity('');
+      run(text);
+    });
+    msg.addEventListener('input', function(){ msg.setCustomValidity(''); });
+  })();
 
   // Background globe: rotating dotted sphere with travelling connection arcs
   (function(){
