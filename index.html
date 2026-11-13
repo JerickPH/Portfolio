@@ -904,28 +904,16 @@
     var ctx = cv.getContext('2d'), W = 0, H = 0, cx = 0, cy = 0, R = 0, k = 1, raf = 0, frame = 0;
     var c1 = '108,182,255', c2 = '154,139,255', light = false;
     var rotY = 0, tilt = .38, tiltTarget = .38, cosT, sinT, cosA, sinA;
-    var dots = [], hubs = [], arcs = [], grid = [];
+    var dots = [], hubs = [], arcs = [];
     var TAU = Math.PI * 2, i, j;
 
     // Evenly spaced points on a sphere (Fibonacci lattice)
-    var N = 460, ga = Math.PI * (3 - Math.sqrt(5));
+    var N = 1100, ga = Math.PI * (3 - Math.sqrt(5));
     for (i = 0; i < N; i++){
       var yy = 1 - (i / (N - 1)) * 2, rr = Math.sqrt(1 - yy * yy), th = ga * i;
       dots.push([Math.cos(th) * rr, yy, Math.sin(th) * rr]);
     }
     for (i = 0; i < 18; i++) hubs.push({p: dots[(Math.random() * N) | 0], ph: Math.random() * TAU});
-    // Meridians and parallels
-    var SEG = 72;
-    for (var m = 0; m < 6; m++){
-      var lon = m * Math.PI / 6, mer = [];
-      for (j = 0; j <= SEG; j++){ var am = j / SEG * TAU; mer.push([Math.cos(am) * Math.cos(lon), Math.sin(am), Math.cos(am) * Math.sin(lon)]); }
-      grid.push(mer);
-    }
-    [-60, -30, 0, 30, 60].forEach(function(lat){
-      var la = lat * Math.PI / 180, par = [];
-      for (var n = 0; n <= SEG; n++){ var ap = n / SEG * TAU; par.push([Math.cos(la) * Math.cos(ap), Math.sin(la), Math.cos(la) * Math.sin(ap)]); }
-      grid.push(par);
-    });
 
     function colors(){
       var cs = getComputedStyle(root);
@@ -963,31 +951,19 @@
       ctx.clearRect(0, 0, W, H);
       var boost = light ? 1.25 : 1, p, q, a, prev;
 
-      // Atmosphere glow and rim
-      var g = ctx.createRadialGradient(cx, cy, R * .85, cx, cy, R * 1.35);
-      g.addColorStop(0, 'rgba(' + c1 + ',' + (.07 * k) + ')'); g.addColorStop(1, 'rgba(' + c1 + ',0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, R * 1.35, 0, TAU); ctx.fill();
-      ctx.strokeStyle = 'rgba(' + c1 + ',' + (.14 * k * boost) + ')'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
-
-      // Grid lines, brighter on the near side
-      ctx.lineWidth = .8;
-      for (i = 0; i < grid.length; i++){
-        var line = grid[i]; prev = proj(line[0]);
-        for (j = 1; j < line.length; j++){
-          p = proj(line[j]); a = (prev[2] + p[2]) / 2;
-          ctx.strokeStyle = 'rgba(' + c1 + ',' + ((a > 0 ? .03 + .09 * a : .018) * k * boost).toFixed(3) + ')';
-          ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
-          prev = p;
-        }
-      }
-      // Surface dots
+      // Surface dots: size and brightness follow depth so the dots alone read as a sphere
       for (i = 0; i < dots.length; i++){
         p = proj(dots[i]);
-        a = p[2] > 0 ? .12 + .5 * p[2] : .05 + .05 * (1 + p[2]);
-        ctx.fillStyle = 'rgba(' + c1 + ',' + (a * k * boost).toFixed(3) + ')';
-        var sz = p[2] > 0 ? 1.8 : 1.2;
-        ctx.fillRect(p[0] - sz / 2, p[1] - sz / 2, sz, sz);
+        var z = p[2], tw = .75 + .25 * Math.sin(frame * .03 + i * 1.7);
+        if (z > 0){
+          a = (.1 + .6 * z) * tw;
+          ctx.fillStyle = 'rgba(' + c1 + ',' + (a * k * boost).toFixed(3) + ')';
+          ctx.beginPath(); ctx.arc(p[0], p[1], .7 + 1.1 * z, 0, TAU); ctx.fill();
+        } else {
+          a = .07 * (1 + z);
+          ctx.fillStyle = 'rgba(' + c1 + ',' + (a * k * boost).toFixed(3) + ')';
+          ctx.fillRect(p[0] - .5, p[1] - .5, 1, 1);
+        }
       }
       // Hub nodes with a soft pulse
       for (i = 0; i < hubs.length; i++){
