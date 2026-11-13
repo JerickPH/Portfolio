@@ -951,7 +951,7 @@
 
   // Ask my AI
   var askForm = document.getElementById('ask-form'), askInput = document.getElementById('ask-q');
-  document.querySelectorAll('.ask-chip').forEach(function(c){ c.addEventListener('click', function(){
+  askForm.querySelectorAll('.ask-chip').forEach(function(c){ c.addEventListener('click', function(){
     askInput.value = c.textContent;
     if (askForm.requestSubmit) askForm.requestSubmit(); else askForm.submit();
   });});
