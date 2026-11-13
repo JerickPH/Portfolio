@@ -161,7 +161,7 @@
   /* Portrait */
   .portrait-col{position:relative;width:min(100%,380px);justify-self:center}
   .portrait-glow{position:absolute;z-index:-1;inset:6% -12% 14%;border-radius:50%;background:radial-gradient(ellipse,rgba(var(--accent-rgb),.18),rgba(var(--accent-2-rgb),.09) 42%,transparent 70%);filter:blur(30px);animation:glow 6s ease-in-out infinite alternate}
-  .portrait{position:relative;aspect-ratio:5/6;padding-top:28px;overflow:hidden;border:1px solid rgba(var(--accent-rgb),.28);border-radius:190px 190px 16px 16px;box-shadow:0 28px 90px var(--shadow),0 0 55px rgba(var(--accent-rgb),.07)}
+  .portrait{position:relative;aspect-ratio:5/6;background:var(--page);padding-top:28px;overflow:hidden;border:1px solid rgba(var(--accent-rgb),.28);border-radius:190px 190px 16px 16px;box-shadow:0 28px 90px var(--shadow),0 0 55px rgba(var(--accent-rgb),.07)}
   .portrait img{width:100%;height:100%;object-fit:cover;object-position:top center;transition:transform .75s cubic-bezier(.2,.7,.2,1)}
   .portrait:hover img{transform:scale(1.035)}
   .portrait-wrap{position:relative}
@@ -914,24 +914,22 @@
       dots.push([Math.cos(th) * rr, yy, Math.sin(th) * rr]);
     }
     for (i = 0; i < 18; i++) hubs.push({p: dots[(Math.random() * N) | 0], ph: Math.random() * TAU});
-    // Mesh: random points packed into a few patches of the globe, plus loose points elsewhere.
-    // Every point links to all of its close neighbours, so one dot joins many and they join back.
+    // Mesh: random points spread evenly over the whole globe (no two too close together).
+    // Every point links to its close neighbours, so one dot joins many and they join back;
+    // a small share of points are left loose with no links at all.
     function rnd(){ var u = Math.random() * 2 - 1, t = Math.random() * TAU, r = Math.sqrt(1 - u * u); return [r * Math.cos(t), u, r * Math.sin(t)]; }
     function dot3(a, b){ return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
-    var patches = [];
-    for (i = 0; i < 4; i++) patches.push({c: rnd(), r: Math.cos(.55 + Math.random() * .3)});
-    var tries = 0;
-    while (nodes.length < 430 && tries++ < 30000){
+    var MIN_COS = Math.cos(.095), tries = 0;
+    while (nodes.length < 680 && tries++ < 60000){
       var cand = rnd();
-      if (patches.some(function(pt){ return dot3(cand, pt.c) > pt.r; })) nodes.push({p: cand});
+      if (!nodes.some(function(nd){ return dot3(cand, nd.p) > MIN_COS; })) nodes.push({p: cand});
     }
-    for (i = 0; i < 60; i++) nodes.push({p: rnd()});
-    nodes.forEach(function(nd){ nd.accent = Math.random() < .08; });
-    var adj = nodes.map(function(){ return []; }), LINK_COS = Math.cos(.21);
+    nodes.forEach(function(nd){ nd.accent = Math.random() < .08; nd.loose = Math.random() < .07; });
+    var adj = nodes.map(function(){ return []; }), LINK_COS = Math.cos(.18);
     for (i = 0; i < nodes.length; i++){
       var close = [];
       for (j = 0; j < nodes.length; j++){
-        if (i === j) continue;
+        if (i === j || nodes[i].loose || nodes[j].loose) continue;
         var dd = dot3(nodes[i].p, nodes[j].p);
         if (dd > LINK_COS) close.push([dd, j]);
       }
