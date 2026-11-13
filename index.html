@@ -994,45 +994,61 @@
     var runBtn = document.getElementById('demo-run'), steps = document.querySelectorAll('#demo-flow .flow-step');
     var running = false;
 
+    // Every alternative starts at a word boundary, so "spreadsheet" can't match "ads"
+    // and "Facebook" can't match "book".
     var INDUSTRIES = [
-      ['Healthcare', /dental|dentist|clinic|doctor|medical|health|chiro|physio|patient|vet\b/],
-      ['Real estate', /real estate|realtor|property|properties|listing|broker|mortgage|buyers|sellers/],
-      ['E-commerce', /shopify|woocommerce|e-?commerce|online store|\bstore\b|\bshop\b|orders|products|cart/],
-      ['Home services', /plumb|hvac|electric|roof|contractor|cleaning|landscap|pest|handyman|repair/],
-      ['Legal', /\blaw\b|legal|attorney|lawyer/],
-      ['Hospitality', /restaurant|cafe|café|\bbar\b|hotel|catering/],
-      ['Agency', /agency|marketing|clients/],
-      ['Coaching', /coach|course|consult|mentor/],
-      ['Education', /school|tutor|academy|students/]
+      ['Healthcare', /\bdental|\bdentists?\b|\bclinics?\b|\bdoctors?\b|\bmedical\b|\bhealth|\bchiro|\bphysio|\bpatients?\b|\bvets?\b/],
+      ['Real estate', /\breal estate\b|\brealtors?\b|\bpropert(y|ies)\b|\bbrokers?\b|\bmortgages?\b|\bbuyers?\b|\bsellers?\b/],
+      ['E-commerce', /\bshopify\b|\bwoocommerce\b|\be-?commerce\b|\bonline store\b|\bstores?\b|\bshops?\b|\borders?\b|\bproducts?\b|\bcarts?\b/],
+      ['Home services', /\bplumb|\bhvac\b|\belectrician|\belectrical\b|\broof|\bcontractors?\b|\bcleaning\b|\blandscap|\bpest\b|\bhandyman\b|\brepairs?\b/],
+      // After Home services, so a plumber "booking jobs" isn't read as hiring
+      ['Recruitment', /\brecruit|\bhiring\b|\bjob (posts?|postings?|listings?|ads?|openings?|board|vacanc)|\bcandidates?\b|\bvacanc|\bstaffing\b|\bapplicants?\b/],
+      ['Legal', /\blaw\b|\blegal\b|\battorneys?\b|\blawyers?\b/],
+      ['Hospitality', /\brestaurants?\b|\bcafes?\b|\bcafé|\bbars?\b|\bhotels?\b|\bcatering\b/],
+      ['Agency', /\bagency\b|\bagencies\b|\bmarketing\b/],
+      ['Coaching', /\bcoach|\bcourses?\b|\bconsult|\bmentor/],
+      ['Education', /\bschools?\b|\btutor|\bacadem|\bstudents?\b/]
     ];
+    // Order matters: the first two matches become the main and second need.
+    // "covers" drops broader needs that a more specific one already includes.
     var NEEDS = [
-      {re: /miss(ed|ing)? (a lot of )?calls?|after.?hours|voicemail|unanswered/, need: 'Missed-call follow-up', tag: 'missed-calls',
+      {re: /\b(excel|spreadsheets?|google sheets?|sheets?|airtable|csv)\b[^.]*\b(websites?|site|pages?|online)\b|\b(websites?|site)\b[^.]*\b(excel|spreadsheets?|google sheets?|airtable|csv)\b|\bwithout (the need to |having to |needing to )?(go(ing)? (in)?to|log(ging)? ?in(to)?|touch(ing)?|open(ing)?) (the )?(website'?s? )?(backend|back-end|admin|dashboard|cms|wordpress)\b/,
+       need: 'Spreadsheet-to-website sync', tag: 'sheet-to-site', covers: ['crm-sync', 'website'],
+       plan: 'a sync that publishes each row of your spreadsheet straight to the website, so editing the sheet updates the site and nobody needs to log in to the backend'},
+      {re: /\bmiss(ed|ing)? (a lot of |many |most )?calls?\b|\bafter.?hours\b|\bvoicemails?\b|\bunanswered\b/, need: 'Missed-call follow-up', tag: 'missed-calls',
        plan: 'an AI voice agent that answers after hours, books the caller in, and texts back anyone who hangs up'},
-      {re: /abandon(ed)? cart/, need: 'Abandoned cart recovery', tag: 'cart-recovery',
+      {re: /\babandon(ed)? carts?\b/, need: 'Abandoned cart recovery', tag: 'cart-recovery',
        plan: 'an email and SMS sequence that brings shoppers back to their cart within the hour'},
-      {re: /invoice|invoicing|billing|payment|xero|quickbooks/, need: 'Invoicing and payment automation', tag: 'invoicing',
+      {re: /\binvoic|\bbilling\b|\bpayments?\b|\bxero\b|\bquickbooks\b/, need: 'Invoicing and payment automation', tag: 'invoicing',
        plan: 'invoices that create themselves when a job or order closes, with automatic payment reminders'},
-      {re: /\bbook(ing|ings|ed)?\b|appointment|schedul|calendar|no.?show|don.?t show/, need: 'Booking and reminders', tag: 'booking',
+      {re: /\bbook(ing|ings|ed)?\b|\bappointments?\b|\bschedul|\bcalendar|\bno.?shows?\b|\bdon.?t show\b/, need: 'Booking and reminders', tag: 'booking',
        plan: 'online booking with SMS and email reminders that cut no-shows'},
-      {re: /follow.?up|leads?|enquir|inquir|respond|reply|ads/, need: 'Lead follow-up automation', tag: 'lead-follow-up',
+      {re: /\bfollow.?up|\bleads?\b|\benquir|\binquir|\brespond|\breply\b|\bads\b/, need: 'Lead follow-up automation', tag: 'lead-follow-up',
        plan: 'instant replies to every new lead, then a short follow-up sequence until they book'},
-      {re: /review/, need: 'Review requests', tag: 'reviews',
+      {re: /\bscreen(ing)?\b[^.]*\b(candidates?|applicants?|cvs?|resumes?)\b|\b(candidates?|applicants?|cvs?|resumes?)\b[^.]*\bscreen(ing)?\b|\bshortlist/, need: 'Candidate screening', tag: 'screening',
+       plan: 'an application form that scores each candidate against the role and books interviews with the best fits automatically'},
+      {re: /\breviews?\b/, need: 'Review requests', tag: 'reviews',
        plan: 'automatic review requests sent after each completed job'},
-      {re: /crm|spreadsheet|manual|data entry|copy.?paste/, need: 'CRM sync and data entry', tag: 'crm-sync',
+      {re: /\bcrm\b|\bspreadsheets?\b|\bmanual(ly)?\b|\bdata entry\b|\bcopy.?past/, need: 'CRM sync and data entry', tag: 'crm-sync',
        plan: 'your tools connected so contacts and deals sync without copy and paste'},
-      {re: /onboard/, need: 'Client onboarding', tag: 'onboarding',
+      {re: /\bonboard/, need: 'Client onboarding', tag: 'onboarding',
        plan: 'an onboarding flow that sends forms, contracts and welcome emails on its own'},
-      {re: /website|landing page|\bsite\b/, need: 'Website and lead capture', tag: 'website',
+      {re: /\bwebsites?\b|\blanding pages?\b|\bsite\b/, need: 'Website and lead capture', tag: 'website',
        plan: 'a fast website with forms that feed straight into your CRM'}
     ];
-    var HIGH = /asap|urgent|losing|lose|miss|every day|daily|overwhelm|can.?t keep up|forever|right now|this week|fixed/;
-    var MED = /soon|this month|next month|planning|growing|grow|scale|thinking/;
+    var HIGH = /\basap\b|\burgent|\blosing\b|\blose\b|\bmiss|\bevery day\b|\bdaily\b|\boverwhelm|\bcan.?t keep up\b|\bforever\b|\bright now\b|\bthis week\b|\bfixed\b/;
+    var MED = /\bsoon\b|\bthis month\b|\bnext month\b|\bplanning\b|\bgrow|\bscal(e|ing)\b|\bthinking\b/;
 
     // Rules-based qualification. Returns the same shape an AI call would.
     function qualify(text){
       var t = text.toLowerCase(), i, industry = 'General business', needs = [];
       for (i = 0; i < INDUSTRIES.length; i++) if (INDUSTRIES[i][1].test(t)){ industry = INDUSTRIES[i][0]; break; }
-      for (i = 0; i < NEEDS.length && needs.length < 2; i++) if (NEEDS[i].re.test(t)) needs.push(NEEDS[i]);
+      var covered = {};
+      for (i = 0; i < NEEDS.length && needs.length < 2; i++){
+        if (covered[NEEDS[i].tag] || !NEEDS[i].re.test(t)) continue;
+        needs.push(NEEDS[i]);
+        (NEEDS[i].covers || []).forEach(function(c){ covered[c] = true; });
+      }
       var urgency = HIGH.test(t) ? 'High' : MED.test(t) ? 'Medium' : 'Low';
       var volume = (t.match(/\b\d{2,}\b/) || [])[0];
       var score = 28 + (industry !== 'General business' ? 10 : 0) + (needs.length ? 18 : 0) + (needs.length > 1 ? 6 : 0)
@@ -1049,9 +1065,10 @@
     // Pick the case study from the Work section that best matches the lead
     var CASE_BY_NEED = {'missed-calls': 'case-school', 'lead-follow-up': 'case-rental', 'invoicing': 'case-rental',
       'booking': 'case-relining', 'cart-recovery': 'case-rental', 'crm-sync': 'case-association', 'onboarding': 'case-association',
-      'reviews': 'case-blueprints', 'website': 'case-recruitment'};
+      'reviews': 'case-blueprints', 'website': 'case-recruitment', 'sheet-to-site': 'case-recruitment', 'screening': 'case-recruitment'};
+    var CASE_BY_INDUSTRY = {'Home services': 'case-relining', 'Recruitment': 'case-recruitment'};
     function pickCase(q){
-      var id = q.industry === 'Home services' ? 'case-relining' : (q.needs[0] && CASE_BY_NEED[q.needs[0].tag]) || 'case-blueprints';
+      var id = CASE_BY_INDUSTRY[q.industry] || (q.needs[0] && CASE_BY_NEED[q.needs[0].tag]) || 'case-blueprints';
       var node = document.getElementById(id), h = node && node.querySelector('h3');
       return h ? {id: id, title: h.textContent.trim()} : null;
     }
