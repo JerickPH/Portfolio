@@ -914,26 +914,39 @@
       dots.push([Math.cos(th) * rr, yy, Math.sin(th) * rr]);
     }
     for (i = 0; i < 18; i++) hubs.push({p: dots[(Math.random() * N) | 0], ph: Math.random() * TAU});
-    // Network: a subset of dots, each linked to its 1-3 nearest neighbours on the surface
-    for (i = 0; i < N; i += 8) nodes.push(dots[i]);
-    var seen = {};
-    nodes.forEach(function(a, ia){
-      var near = [];
-      nodes.forEach(function(b, ib){
-        if (ia === ib) return;
-        var d = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-        if (d > .9) near.push([d, ib]);
-      });
-      near.sort(function(x, y){ return y[0] - x[0]; });
-      var want = 1 + ((Math.random() * 3) | 0);
-      for (var q = 0; q < Math.min(want, near.length); q++){
-        var ib = near[q][1], key = ia < ib ? ia + '-' + ib : ib + '-' + ia;
-        if (seen[key]) continue;
-        seen[key] = 1;
-        var b = nodes[ib], mx = a[0] + b[0], my = a[1] + b[1], mz = a[2] + b[2], ml = Math.sqrt(mx*mx + my*my + mz*mz);
-        links.push({a: a, b: b, m: [mx / ml, my / ml, mz / ml]});
+    // Network: a few root dots branch out to several neighbours, those branch again,
+    // and dots the branches never reach stay unconnected
+    for (i = 0; i < N; i += 7) nodes.push({p: dots[i], root: false, parent: false});
+    var out = nodes.map(function(){ return []; }), seeds = [], used = {};
+    function near(ia){
+      var a = nodes[ia].p, list = [];
+      for (var ib = 0; ib < nodes.length; ib++){
+        if (used[ib]) continue;
+        var b = nodes[ib].p, d = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+        if (d > .935) list.push([d, ib]);
       }
-    });
+      return list.sort(function(x, y){ return y[0] - x[0]; });
+    }
+    for (var sd = 0; sd < 200 && seeds.length < 10; sd++){
+      var rt = (Math.random() * nodes.length) | 0;
+      if (used[rt]) continue;
+      used[rt] = 1; nodes[rt].root = true; seeds.push(rt);
+      var queue = [[rt, 0]];
+      while (queue.length){
+        var cur = queue.shift(), ia = cur[0], depth = cur[1];
+        if (depth >= 4) continue;
+        var kids = near(ia).slice(0, 2 + ((Math.random() * 3) | 0));
+        kids.forEach(function(c){
+          var ib = c[1], a = nodes[ia].p, b = nodes[ib].p;
+          used[ib] = 1; nodes[ib].parent = true;
+          var mx = a[0] + b[0], my = a[1] + b[1], mz = a[2] + b[2], ml = Math.sqrt(mx*mx + my*my + mz*mz);
+          out[ia].push(links.length);
+          links.push({a: a, b: b, bi: ib, m: [mx / ml, my / ml, mz / ml]});
+          if (Math.random() < .85) queue.push([ib, depth + 1]);
+        });
+      }
+    }
+    function fire(ri){ out[ri].forEach(function(li){ flashes.push({l: li, t: 0}); }); }
 
     function colors(){
       var cs = getComputedStyle(root);
@@ -995,26 +1008,33 @@
         ctx.quadraticCurveTo(2 * pm[0] - (pa[0] + pb[0]) / 2, 2 * pm[1] - (pa[1] + pb[1]) / 2, pb[0], pb[1]);
         ctx.stroke();
       }
+      // Network nodes: roots are largest, branch nodes medium, unconnected ones stay small
       for (i = 0; i < nodes.length; i++){
-        p = proj(nodes[i]);
+        var nd = nodes[i]; p = proj(nd.p);
         if (p[2] < 0) continue;
-        ctx.fillStyle = 'rgba(' + c1 + ',' + ((.25 + .6 * p[2]) * k * boost).toFixed(3) + ')';
-        ctx.beginPath(); ctx.arc(p[0], p[1], 1.4 + 1.2 * p[2], 0, TAU); ctx.fill();
+        var isRoot = nd.root, linked = out[i].length || nd.parent;
+        ctx.fillStyle = 'rgba(' + (isRoot ? c2 : c1) + ',' + ((linked ? .3 + .6 * p[2] : .15 + .3 * p[2]) * k * boost).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(p[0], p[1], (isRoot ? 2.4 : linked ? 1.5 : 1.1) + 1.1 * p[2], 0, TAU); ctx.fill();
       }
+      // Signals: start at a root and branch outward, child by child
       ctx.lineWidth = 1.4;
       for (i = flashes.length - 1; i >= 0; i--){
         var fl = flashes[i], L2 = links[fl.l];
-        if (fl.t >= 1){ flashes.splice(i, 1); continue; }
+        if (fl.t >= 1){
+          flashes.splice(i, 1);
+          if (!reduce) out[L2.bi].forEach(function(li){ if (flashes.length < 60 && Math.random() < .85) flashes.push({l: li, t: 0}); });
+          continue;
+        }
         var fa = proj(L2.a), fb = proj(L2.b), fz = (fa[2] + fb[2]) / 2;
         if (fz > 0){
-          var fe = Math.sin(Math.PI * fl.t);
-          ctx.strokeStyle = 'rgba(' + c2 + ',' + (.6 * fe * fz * k * boost).toFixed(3) + ')';
+          var fe = Math.sin(Math.PI * Math.min(1, fl.t * 1.4));
+          ctx.strokeStyle = 'rgba(' + c2 + ',' + (.55 * fe * fz * k * boost).toFixed(3) + ')';
           ctx.beginPath(); ctx.moveTo(fa[0], fa[1]); ctx.lineTo(fb[0], fb[1]); ctx.stroke();
           var fx = fa[0] + (fb[0] - fa[0]) * fl.t, fy = fa[1] + (fb[1] - fa[1]) * fl.t;
           ctx.fillStyle = 'rgba(' + c1 + ',' + (.9 * fz * k) + ')';
           ctx.beginPath(); ctx.arc(fx, fy, 1.8, 0, TAU); ctx.fill();
         }
-        if (!reduce) fl.t += .02;
+        if (!reduce) fl.t += .025;
       }
       // Hub nodes with a soft pulse
       for (i = 0; i < hubs.length; i++){
@@ -1051,7 +1071,7 @@
     function step(){
       frame++; rotY += .0016; tilt += (tiltTarget - tilt) * .03;
       if (arcs.length < 6 && frame % 45 === 0) spawn();
-      if (flashes.length < 10 && frame % 12 === 0 && links.length) flashes.push({l: (Math.random() * links.length) | 0, t: 0});
+      if (frame % 40 === 0 && seeds.length) fire(seeds[(Math.random() * seeds.length) | 0]);
       draw(); raf = requestAnimationFrame(step);
     }
     function start(){ if (!raf && !reduce) raf = requestAnimationFrame(step); }
