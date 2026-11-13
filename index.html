@@ -304,9 +304,12 @@
   .route span{font:500 .78rem var(--mono);padding:6px 10px;border-radius:7px;border:1px solid var(--line);color:var(--faint)}
   .route span.on{border-color:rgba(var(--accent-rgb),.55);background:rgba(var(--accent-rgb),.1);color:var(--accent)}
   .route-why{margin:10px 0 0}
+  .attach{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:8px;background:var(--page);color:var(--text);font-size:.86rem;text-decoration:none;transition:border-color .2s,color .2s}
+  .attach:hover{border-color:rgba(var(--accent-rgb),.5);color:var(--accent)}
+  .attach svg{flex:none;color:var(--accent)}
   .reply{margin:0;padding:14px 16px;border-left:2px solid var(--accent);background:rgba(var(--accent-rgb),.05);border-radius:0 8px 8px 0;color:var(--text);white-space:pre-line}
-  .tags{display:flex;flex-wrap:wrap;gap:6px}
-  .tags span{font:400 .72rem var(--mono);padding:3px 8px;border-radius:5px;background:rgba(var(--accent-2-rgb),.12);color:var(--accent-2)}
+  .crm-tags{display:flex;flex-wrap:wrap;gap:6px}
+  .crm-tags span{font:400 .72rem var(--mono);padding:3px 8px;border-radius:5px;background:rgba(var(--accent-2-rgb),.12);color:var(--accent-2)}
   .demo + .toolkit{margin-top:56px}
 
   /* Toolkit */
@@ -547,7 +550,7 @@
       </div>
 
       <div class="work-list">
-        <details class="case" data-cat="automation voice" open>
+        <details id="case-rental" class="case" data-cat="automation voice" open>
           <summary>
             <div><h3>Lead-to-payment pipeline for a rental housing operator</h3>
               <div class="tags"><span class="tag">Automation</span><span class="tag">AI voice</span></div></div>
@@ -565,7 +568,7 @@
           </div>
         </details>
 
-        <details class="case" data-cat="automation">
+        <details id="case-relining" class="case" data-cat="automation">
           <summary>
             <div><h3>AI voice-to-quote workflow for a pipe relining company</h3>
               <div class="tags"><span class="tag">Automation</span></div></div>
@@ -583,7 +586,7 @@
           </div>
         </details>
 
-        <details class="case" data-cat="automation">
+        <details id="case-association" class="case" data-cat="automation">
           <summary>
             <div><h3>Operations automations for a membership association</h3>
               <div class="tags"><span class="tag">Automation</span></div></div>
@@ -602,7 +605,7 @@
           </div>
         </details>
 
-        <details class="case" data-cat="voice">
+        <details id="case-school" class="case" data-cat="voice">
           <summary>
             <div><h3>AI phone agent for a training school</h3>
               <div class="tags"><span class="tag">AI voice</span></div></div>
@@ -620,7 +623,7 @@
           </div>
         </details>
 
-        <details class="case" data-cat="automation">
+        <details id="case-blueprints" class="case" data-cat="automation">
           <summary>
             <div><h3>Automation blueprints for service businesses</h3>
               <div class="tags"><span class="tag">Automation</span></div></div>
@@ -637,7 +640,7 @@
           </div>
         </details>
 
-        <details class="case" data-cat="web">
+        <details id="case-institutional" class="case" data-cat="web">
           <summary>
             <div><h3>Websites and systems for a European institutional client</h3>
               <div class="tags"><span class="tag">Websites</span></div></div>
@@ -655,7 +658,7 @@
           </div>
         </details>
 
-        <details class="case" data-cat="web">
+        <details id="case-recruitment" class="case" data-cat="web">
           <summary>
             <div><h3>Recruitment websites with live job listings</h3>
               <div class="tags"><span class="tag">Websites</span></div></div>
@@ -1043,6 +1046,15 @@
       Warm: {label: 'Warm → send case study', why: 'Real need but no rush yet, so the lead gets a relevant example and a follow-up in two days.', stage: 'Nurturing', task: 'Follow up in 2 days'},
       Cold: {label: 'Cold → nurture sequence', why: 'Not enough detail yet, so the lead joins a light email sequence instead of a sales call.', stage: 'New lead', task: 'Monthly newsletter'}
     };
+    // Pick the case study from the Work section that best matches the lead
+    var CASE_BY_NEED = {'missed-calls': 'case-school', 'lead-follow-up': 'case-rental', 'invoicing': 'case-rental',
+      'booking': 'case-relining', 'cart-recovery': 'case-rental', 'crm-sync': 'case-association', 'onboarding': 'case-association',
+      'reviews': 'case-blueprints', 'website': 'case-recruitment'};
+    function pickCase(q){
+      var id = q.industry === 'Home services' ? 'case-relining' : (q.needs[0] && CASE_BY_NEED[q.needs[0].tag]) || 'case-blueprints';
+      var node = document.getElementById(id), h = node && node.querySelector('h3');
+      return h ? {id: id, title: h.textContent.trim()} : null;
+    }
     function draftReply(q){
       var need = q.needs[0];
       var intro = 'Hi there, thanks for reaching out.';
@@ -1051,7 +1063,7 @@
         : 'It sounds like there is a process slowing you down. The best first step is a short audit to find the task worth automating first.';
       var extra = q.needs[1] ? ' After that, we can look at ' + q.needs[1].need.toLowerCase() + ' as a second step.' : '';
       var cta = q.tier === 'Hot' ? 'You can grab a 20-minute call on my calendar today and I will map it out with you.'
-        : q.tier === 'Warm' ? 'I have attached a short case study from a similar ' + q.industry.toLowerCase() + ' setup. Happy to talk whenever suits you.'
+        : q.tier === 'Warm' ? 'I have included a case study from a similar project below, so you can see how it worked. Happy to talk whenever suits you.'
         : 'If you can share a little more about how you work today, I can point you in the right direction.';
       return intro + '\n\n' + body + extra + '\n\n' + cta + '\n\nJerick';
     }
@@ -1087,8 +1099,20 @@
       out.route.appendChild(el('p', 'route-why', ROUTES[q.tier].why));
 
       out.reply.appendChild(el('p', 'reply', draftReply(q)));
+      var cs = q.tier === 'Warm' && pickCase(q);
+      if (cs){
+        var at = el('a', 'attach'); at.href = '#' + cs.id;
+        at.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9"/></svg>';
+        at.appendChild(el('span', null, 'Case study: ' + cs.title));
+        at.addEventListener('click', function(){
+          var d = document.getElementById(cs.id), all = document.querySelector('.chip[data-filter="all"]');
+          if (d && d.hidden && all) all.click();
+          if (d) d.open = true;
+        });
+        out.reply.appendChild(at);
+      }
 
-      var tags = el('div', 'tags');
+      var tags = el('div', 'crm-tags');
       [q.industry.toLowerCase().replace(/\s+/g, '-'), q.tier.toLowerCase() + '-lead'].concat(q.needs.map(function(n){ return n.tag; }))
         .forEach(function(tg){ tags.appendChild(el('span', null, tg)); });
       out.crm.appendChild(kv([
