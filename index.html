@@ -908,45 +908,44 @@
     var TAU = Math.PI * 2, i, j;
 
     // Evenly spaced points on a sphere (Fibonacci lattice)
-    var N = 1100, ga = Math.PI * (3 - Math.sqrt(5));
+    var N = 650, ga = Math.PI * (3 - Math.sqrt(5));
     for (i = 0; i < N; i++){
       var yy = 1 - (i / (N - 1)) * 2, rr = Math.sqrt(1 - yy * yy), th = ga * i;
       dots.push([Math.cos(th) * rr, yy, Math.sin(th) * rr]);
     }
     for (i = 0; i < 18; i++) hubs.push({p: dots[(Math.random() * N) | 0], ph: Math.random() * TAU});
-    // Network: a few root dots branch out to several neighbours, those branch again,
-    // and dots the branches never reach stay unconnected
-    for (i = 0; i < N; i += 7) nodes.push({p: dots[i], root: false, parent: false});
-    var out = nodes.map(function(){ return []; }), seeds = [], used = {};
-    function near(ia){
-      var a = nodes[ia].p, list = [];
-      for (var ib = 0; ib < nodes.length; ib++){
-        if (used[ib]) continue;
-        var b = nodes[ib].p, d = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-        if (d > .935) list.push([d, ib]);
-      }
-      return list.sort(function(x, y){ return y[0] - x[0]; });
+    // Mesh: random points packed into a few patches of the globe, plus loose points elsewhere.
+    // Every point links to all of its close neighbours, so one dot joins many and they join back.
+    function rnd(){ var u = Math.random() * 2 - 1, t = Math.random() * TAU, r = Math.sqrt(1 - u * u); return [r * Math.cos(t), u, r * Math.sin(t)]; }
+    function dot3(a, b){ return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+    var patches = [];
+    for (i = 0; i < 4; i++) patches.push({c: rnd(), r: Math.cos(.55 + Math.random() * .3)});
+    var tries = 0;
+    while (nodes.length < 430 && tries++ < 30000){
+      var cand = rnd();
+      if (patches.some(function(pt){ return dot3(cand, pt.c) > pt.r; })) nodes.push({p: cand});
     }
-    for (var sd = 0; sd < 200 && seeds.length < 10; sd++){
-      var rt = (Math.random() * nodes.length) | 0;
-      if (used[rt]) continue;
-      used[rt] = 1; nodes[rt].root = true; seeds.push(rt);
-      var queue = [[rt, 0]];
-      while (queue.length){
-        var cur = queue.shift(), ia = cur[0], depth = cur[1];
-        if (depth >= 4) continue;
-        var kids = near(ia).slice(0, 2 + ((Math.random() * 3) | 0));
-        kids.forEach(function(c){
-          var ib = c[1], a = nodes[ia].p, b = nodes[ib].p;
-          used[ib] = 1; nodes[ib].parent = true;
-          var mx = a[0] + b[0], my = a[1] + b[1], mz = a[2] + b[2], ml = Math.sqrt(mx*mx + my*my + mz*mz);
-          out[ia].push(links.length);
-          links.push({a: a, b: b, bi: ib, m: [mx / ml, my / ml, mz / ml]});
-          if (Math.random() < .85) queue.push([ib, depth + 1]);
-        });
+    for (i = 0; i < 60; i++) nodes.push({p: rnd()});
+    nodes.forEach(function(nd){ nd.accent = Math.random() < .08; });
+    var adj = nodes.map(function(){ return []; }), LINK_COS = Math.cos(.21);
+    for (i = 0; i < nodes.length; i++){
+      var close = [];
+      for (j = 0; j < nodes.length; j++){
+        if (i === j) continue;
+        var dd = dot3(nodes[i].p, nodes[j].p);
+        if (dd > LINK_COS) close.push([dd, j]);
       }
+      close.sort(function(x, y){ return y[0] - x[0]; });
+      close.slice(0, 7).forEach(function(c){
+        var jj = c[1];
+        if (adj[i].indexOf(jj) > -1) return;
+        adj[i].push(jj); adj[jj].push(i); links.push({a: i, b: jj});
+      });
     }
-    function fire(ri){ out[ri].forEach(function(li){ flashes.push({l: li, t: 0}); }); }
+    function fire(){
+      var lk = links[(Math.random() * links.length) | 0];
+      flashes.push({from: lk.a, to: lk.b, t: 0, gen: 0});
+    }
 
     function colors(){
       var cs = getComputedStyle(root);
@@ -998,43 +997,54 @@
           ctx.fillRect(p[0] - .5, p[1] - .5, 1, 1);
         }
       }
-      // Network links hugging the surface, plus the occasional signal running along one
-      ctx.lineWidth = .7;
+      // Mesh links, batched into a few depth bands so hundreds of lines stay cheap
+      ctx.lineWidth = .6;
+      var bands = [[], [], [], []];
       for (i = 0; i < links.length; i++){
-        var lk = links[i], pa = proj(lk.a), pb = proj(lk.b), pm = proj(lk.m), lz = (pa[2] + pb[2]) / 2;
-        if (lz < -.05) continue;
-        ctx.strokeStyle = 'rgba(' + c1 + ',' + ((.05 + .22 * Math.max(0, lz)) * k * boost).toFixed(3) + ')';
-        ctx.beginPath(); ctx.moveTo(pa[0], pa[1]);
-        ctx.quadraticCurveTo(2 * pm[0] - (pa[0] + pb[0]) / 2, 2 * pm[1] - (pa[1] + pb[1]) / 2, pb[0], pb[1]);
+        var lk = links[i], pa = proj(nodes[lk.a].p), pb = proj(nodes[lk.b].p), lz = (pa[2] + pb[2]) / 2;
+        if (lz < -.1) continue;
+        bands[Math.min(3, Math.max(0, (lz * 4) | 0))].push(pa, pb);
+      }
+      for (j = 0; j < 4; j++){
+        if (!bands[j].length) continue;
+        ctx.strokeStyle = 'rgba(' + c1 + ',' + ((.06 + .07 * j) * k * boost).toFixed(3) + ')';
+        ctx.beginPath();
+        for (i = 0; i < bands[j].length; i += 2){ ctx.moveTo(bands[j][i][0], bands[j][i][1]); ctx.lineTo(bands[j][i + 1][0], bands[j][i + 1][1]); }
         ctx.stroke();
       }
-      // Network nodes: roots are largest, branch nodes medium, unconnected ones stay small
+      // Mesh nodes: more connections means a slightly bigger dot; loose dots stay small
       for (i = 0; i < nodes.length; i++){
         var nd = nodes[i]; p = proj(nd.p);
-        if (p[2] < 0) continue;
-        var isRoot = nd.root, linked = out[i].length || nd.parent;
-        ctx.fillStyle = 'rgba(' + (isRoot ? c2 : c1) + ',' + ((linked ? .3 + .6 * p[2] : .15 + .3 * p[2]) * k * boost).toFixed(3) + ')';
-        ctx.beginPath(); ctx.arc(p[0], p[1], (isRoot ? 2.4 : linked ? 1.5 : 1.1) + 1.1 * p[2], 0, TAU); ctx.fill();
+        if (p[2] < -.1) continue;
+        var deg = adj[i].length, zz = Math.max(0, p[2]);
+        ctx.fillStyle = 'rgba(' + (nd.accent ? c2 : c1) + ',' + ((deg ? .3 + .55 * zz : .18 + .3 * zz) * k * boost).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(p[0], p[1], (deg ? 1 + Math.min(deg, 7) * .16 : .9) + .9 * zz, 0, TAU); ctx.fill();
       }
-      // Signals: start at a root and branch outward, child by child
-      ctx.lineWidth = 1.4;
+      // Signals hop from node to node across the mesh, splitting at junctions
+      ctx.lineWidth = 1.3;
       for (i = flashes.length - 1; i >= 0; i--){
-        var fl = flashes[i], L2 = links[fl.l];
+        var fl = flashes[i];
         if (fl.t >= 1){
           flashes.splice(i, 1);
-          if (!reduce) out[L2.bi].forEach(function(li){ if (flashes.length < 60 && Math.random() < .85) flashes.push({l: li, t: 0}); });
+          if (!reduce && fl.gen < 7){
+            var nb = adj[fl.to].filter(function(x){ return x !== fl.from; });
+            for (var h = 0; h < Math.min(nb.length, Math.random() < .35 ? 2 : 1) && flashes.length < 50; h++){
+              var nx = nb.splice((Math.random() * nb.length) | 0, 1)[0];
+              flashes.push({from: fl.to, to: nx, t: 0, gen: fl.gen + 1});
+            }
+          }
           continue;
         }
-        var fa = proj(L2.a), fb = proj(L2.b), fz = (fa[2] + fb[2]) / 2;
+        var fa = proj(nodes[fl.from].p), fb = proj(nodes[fl.to].p), fz = (fa[2] + fb[2]) / 2;
         if (fz > 0){
-          var fe = Math.sin(Math.PI * Math.min(1, fl.t * 1.4));
-          ctx.strokeStyle = 'rgba(' + c2 + ',' + (.55 * fe * fz * k * boost).toFixed(3) + ')';
+          var fe = Math.sin(Math.PI * Math.min(1, fl.t * 1.3));
+          ctx.strokeStyle = 'rgba(' + c2 + ',' + (.6 * fe * fz * k * boost).toFixed(3) + ')';
           ctx.beginPath(); ctx.moveTo(fa[0], fa[1]); ctx.lineTo(fb[0], fb[1]); ctx.stroke();
           var fx = fa[0] + (fb[0] - fa[0]) * fl.t, fy = fa[1] + (fb[1] - fa[1]) * fl.t;
-          ctx.fillStyle = 'rgba(' + c1 + ',' + (.9 * fz * k) + ')';
-          ctx.beginPath(); ctx.arc(fx, fy, 1.8, 0, TAU); ctx.fill();
+          ctx.fillStyle = 'rgba(' + c1 + ',' + (.95 * fz * k) + ')';
+          ctx.beginPath(); ctx.arc(fx, fy, 1.7, 0, TAU); ctx.fill();
         }
-        if (!reduce) fl.t += .025;
+        if (!reduce) fl.t += .03;
       }
       // Hub nodes with a soft pulse
       for (i = 0; i < hubs.length; i++){
@@ -1071,7 +1081,7 @@
     function step(){
       frame++; rotY += .0016; tilt += (tiltTarget - tilt) * .03;
       if (arcs.length < 6 && frame % 45 === 0) spawn();
-      if (frame % 40 === 0 && seeds.length) fire(seeds[(Math.random() * seeds.length) | 0]);
+      if (frame % 30 === 0 && links.length) fire();
       draw(); raf = requestAnimationFrame(step);
     }
     function start(){ if (!raf && !reduce) raf = requestAnimationFrame(step); }
